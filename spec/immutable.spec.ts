@@ -121,17 +121,17 @@ describe("immutable", () => {
                 }
             });
             test("concat", () => {
-                expect(x.concat([4, 5])).toEqual([1, 2, 3, 4, 5]);
+                expect(x.concat([4, 5])).toEqual(CustomArray.from([1, 2, 3, 4, 5]));
             });
             test("every", () => {
                 expect(x.every((v) => v > 0)).toBe(true);
                 expect(x.every((v) => v < 2)).toBe(false);
             });
             test("fill", () => {
-                expect(x.fill(0, 2, 4)).toEqual([1, 2, 0]);
+                expect(x.fill(0, 2, 4)).toEqual(CustomArray.from([1, 2, 0]));
             });
             test("filter", () => {
-                expect(x.filter((v) => v % 2)).toEqual([1, 3]);
+                expect(x.filter((v) => v % 2)).toEqual(CustomArray.from([1, 3]));
             });
             test("find", () => {
                 expect(x.find((v) => v % 2 !== 0)).toEqual(1);
@@ -157,7 +157,7 @@ describe("immutable", () => {
                 expect(Array.from(x.keys())).toEqual([0, 1, 2]);
             });
             test("map", () => {
-                expect(x.map((e) => e * 2)).toEqual([2, 4, 6]);
+                expect(x.map((e) => e * 2)).toEqual(CustomArray.from([2, 4, 6]));
             });
             test("pop", () => {
                 expect(x.pop()).toEqual(3);
@@ -169,8 +169,8 @@ describe("immutable", () => {
                 expect(x.reduce(add, 0)).toEqual(6);
             });
             test("sort", () => {
-                expect(x.reverse()).toEqual([3, 2, 1]); // in place
-                expect(x.sort()).toEqual([1, 2, 3]); // in place
+                expect(x.reverse()).toEqual(CustomArray.from([3, 2, 1])); // in place
+                expect(x.sort()).toEqual(CustomArray.from([1, 2, 3])); // in place
             });
 
         });
