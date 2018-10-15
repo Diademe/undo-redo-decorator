@@ -5,3 +5,5 @@ dist
 /.vscode
 /dcerialize.njsproj
 /dcerialize.code-workspace
+
+/spec/playground.spec.ts
