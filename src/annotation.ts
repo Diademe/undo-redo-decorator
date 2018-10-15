@@ -11,6 +11,6 @@ export function Undoable<T extends { new(...args: any[]): any }>(ctor: T) {
             super(...args);
             return new Proxy (this, proxyHandler(this));
         }
-    }
+    };
     return anonymousClass;
 }

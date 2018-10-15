@@ -1,6 +1,6 @@
 import { Undoable } from "../src/index";
 
-describe("hesitance",()=> {
+describe("hesitance", () => {
     @Undoable
     class Mother {
         motherName: string;
@@ -18,12 +18,12 @@ describe("hesitance",()=> {
     }
 
     @Undoable
-    class Child extends Mother{
+    class Child extends Mother {
         childName: string;
         nonStatic: string;
 
         constructor() {
-            super()
+            super();
             this.childName = "child";
             this.nonStatic = "child";
         }
@@ -35,8 +35,8 @@ describe("hesitance",()=> {
         }
     }
 
-    let child:Child; 
-    let mother:Mother; 
+    let child: Child;
+    let mother: Mother;
 
     beforeEach(() => {
         child = new Child();
@@ -49,7 +49,7 @@ describe("hesitance",()=> {
         expect(mother).toBeInstanceOf(Mother);
     });
 
-    
+
     test("static", () => {
         expect(Child.childStatic()).toEqual(0);
         expect(Child.staticOverridden()).toEqual(0);
@@ -63,4 +63,4 @@ describe("hesitance",()=> {
         expect(Mother.motherStatic()).toEqual(1);
     });
 
-})
+});
