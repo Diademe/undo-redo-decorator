@@ -1,13 +1,22 @@
-export class History<T> extends Array<T> {
+export class SuperArray<T> extends Array<T> {
     constructor() {
         super();
     }
-    public last() {
+    public get beforeLast() {
+        return this[this.length - 2];
+    }
+
+    public get last() {
         return this[this.length - 1];
     }
 
-    public reverseFindIndex(f: (elt: T, index: number, history: History<T>) => boolean): number {
-        for (let index = this.length - 1; index >= 0; index--) {
+    public set last(value: T) {
+        this[this.length - 1] = value;
+    }
+
+    public reverseFindIndex(f: (elt: T, index: number, history: SuperArray<T>) => boolean, from?: number): number {
+        from = from === undefined ? this.length - 1 : from;
+        for (let index = from; index >= 0; index--) {
             if (f(this[index], index, this)) {
                 return index;
             }
@@ -25,7 +34,7 @@ export class Index {
      *   0 if this == that
      *   1 if this after that
      */
-    before(that: Index): number {
+    public before(that: Index): number {
         if (this.redoVersion < that.redoVersion) { return -1; }
         if (this.redoVersion === that.redoVersion) { return this.indexVersion - that.indexVersion; }
         return 1;
@@ -42,12 +51,12 @@ enum State { Dirty, Clean }
  */
 export class MasterIndex {
     // History branch when a modification is done after an undo (it erase the redo history)
-    private branchHistory: History<number>;
+    private branchHistory: SuperArray<number>;
     private index: number;
     private lastState: State;
     private lastRedo: number;
     constructor() {
-        this.branchHistory = new History<number>();
+        this.branchHistory = new SuperArray<number>();
         this.lastRedo = 0;
         this.branchHistory.push(this.lastRedo);
         this.index = 0;
@@ -55,7 +64,7 @@ export class MasterIndex {
     }
 
     public getCurrentIndex(): number {
-        return this.lastState === State.Dirty ? this.index + 1 : this.index;
+        return this.index;
     }
 
     /**
@@ -65,8 +74,6 @@ export class MasterIndex {
     public save(): boolean {
         if (this.lastState === State.Dirty) {
             this.lastState = State.Clean;
-            this.branchHistory.push(this.lastRedo);
-            this.index++;
             return true;
         }
         return false;
@@ -84,16 +91,23 @@ export class MasterIndex {
      * @param index to which state do you want to go (default : last saved state)
      */
     public undo(index?: number): void {
-        let _index = index !== undefined ? index : this.index - 1;
-        if (this.lastState === State.Dirty && index === undefined) {
-            _index++;
+        // undefined because index can be 0
+        index = index !== undefined ? index : Math.max(this.getCurrentIndex() - 1, 0);
+        if (index >= this.getCurrentIndex() || index < 0) {
+            throw Error("undo(i): i should be in [0, getCurrentIndex()] but i=" + index + " not in [0, " + this.getCurrentIndex() + "]");
         }
-        this.index = Math.max(_index, 0);
+        this.index = index;
         this.lastState = State.Clean;
     }
 
     public redoPossible() {
+        // -1 because branchHistory is initialized to [0]
         return this.index < this.branchHistory.length - 1;
+    }
+
+    public maxRedoPossible() {
+        // -1 because branchHistory is initialized to [0]
+        return this.branchHistory.length - 1;
     }
 
     /**
@@ -101,33 +115,58 @@ export class MasterIndex {
      * @param index to which state do you want to go (default : last saved state)
      */
     public redo(index?: number): void {
-        index = index || this.index + 1;
+        index = index !== undefined ? index : this.getCurrentIndex() + 1;
+        if (index <= this.getCurrentIndex() || index >= this.branchHistory.length) {
+            throw Error("redo(i): i should be in greater that getCurrentIndex() but i=" + index + " > " + this.getCurrentIndex());
+        }
         this.index = Math.min(index, this.branchHistory.length - 1);
         this.lastState = State.Clean;
+    }
+
+    private findIndex<T> (slaveIndexHistory: SuperArray<[Index, T]>) {
+        if (slaveIndexHistory.length === 0) {
+            return -1;
+        }
+
+        const slaveLastRedo = slaveIndexHistory.last[0].redoVersion;
+
+        const iMaster = this.branchHistory.reverseFindIndex((masterRedoVersion: number) => {
+            return masterRedoVersion <= slaveLastRedo;
+        }, this.index);
+        const indexMaster = new Index(iMaster, this.branchHistory[iMaster]);
+        const iSlave = slaveIndexHistory.reverseFindIndex(([indexSlave, _]) => {
+            return indexSlave.before(indexMaster) <= 0;
+        });
+        return iSlave;
     }
 
     /**
      * call this function each time
      * @param slaveIndexHistory
      */
-    public set<T>(slaveIndexHistory: History<[Index, T]>, obj: T): void {
+    public set<T>(slaveIndexHistory: SuperArray<[Index, T]>, obj: T): void {
         if (this.redoPossible()) {
             // parent node: index from which we branche
             this.branchHistory.length = this.index + 1;
             this.lastRedo = this.lastRedo + 1;
         }
-        this.lastState = State.Dirty;
-        const slaveLastRedo = slaveIndexHistory.last()[0].redoVersion;
-
-        const iMaster = this.branchHistory.reverseFindIndex((masterRedoVersion: number) => {
-            return masterRedoVersion <= slaveLastRedo;
-        });
-        const indexMaster = new Index(iMaster, this.branchHistory[iMaster]);
-        const iSlave = slaveIndexHistory.reverseFindIndex(([indexSlave, _]) => {
-            return indexSlave.before(indexMaster) <= 0;
-        });
+        if (this.lastState === State.Clean) {
+            this.branchHistory.push(this.lastRedo);
+            this.index++;
+        }
+        const iSlave = this.findIndex(slaveIndexHistory);
         slaveIndexHistory.length = iSlave + 1;
-        slaveIndexHistory.push([new Index(this.index + 1, this.lastRedo), obj]);
+        // we don't write twice an item at the end of the history
+        if (slaveIndexHistory.length > 0 && slaveIndexHistory.last[1] === obj) {
+            if (this.lastState === State.Clean) {
+                this.branchHistory.pop();
+                this.index--;
+            }
+            return;
+        }
+        slaveIndexHistory.length = iSlave === -1 ? 1 : iSlave + 2;
+        this.lastState = State.Dirty;
+        slaveIndexHistory.last = [new Index(this.index, this.lastRedo), obj];
     }
 }
 
