@@ -1,15 +1,18 @@
 {
-    "extends": "tslint:latest",
+    "extends": [
+        "tslint:latest"
+    ],
     "rules": {
-
         "array-type": [true, "array"],
         "class-name": true,
         "comment-format": [true,
             "check-space"
         ],
-        "curly":[true, "ignore-same-line"],
-        "indent": [true,
-            "spaces"
+        "curly": [true, "ignore-same-line"],
+        "indent": [
+            true,
+            "spaces",
+            4
         ],
         "interface-name": [true, "never-prefix"],
         "interface-over-type-literal": true,
@@ -30,7 +33,7 @@
             "double",
             "avoid-escape"
         ],
-        "semicolon": [true, "always", "ignore-bound-class-methods"],
+        "semicolon": [false, "always", "ignore-bound-class-methods"],
         "space-within-parens": true,
         "triple-equals": true,
         "typedef-whitespace": [
@@ -101,5 +104,5 @@
         "no-reference": false,
         "object-literal-sort-keys": false,
         "one-variable-per-declaration": false
-	}
+    }
 }
