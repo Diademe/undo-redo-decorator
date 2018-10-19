@@ -181,7 +181,21 @@ describe("immutable", () => {
                 expect(x.reverse()).toEqual(CustomArray.from([3, 2, 1])); // in place
                 expect(x.sort()).toEqual(CustomArray.from([1, 2, 3])); // in place
             });
+        });
 
+        test("Array", () => {
+            const x = [1, 2, 3];
+            const xClone = immutable.array(x);
+            expect(x).not.toBe(xClone);
+            expect(x).toEqual(xClone);
+        });
+
+        test("Object", () => {
+            const x = { a: 1, b: [2] };
+            const xClone = immutable.object(x);
+            expect(x).not.toBe(xClone);
+            expect(x).toEqual(xClone);
+            expect(x.b).toBe(xClone.b);
         });
 
         test("CustomDate", () => {
