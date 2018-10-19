@@ -17,6 +17,9 @@ export namespace clone {
         cloneMap.set(obj, [Clone.Function, func]);
     }
     export function get<T extends Object>(instance: T): T {
+        if (!cloneMap.has(get)) {
+            return instance;
+        }
         const [clone, keyFunc] = cloneMap.get(instance);
         switch (clone) {
             case Clone.Class:
