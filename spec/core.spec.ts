@@ -1,5 +1,4 @@
 import { MasterIndex, Index, SuperArray } from "../src/core";
-import { Undoable } from "../src";
 
 describe("core", () => {
     describe("Index", () => {
@@ -209,10 +208,7 @@ describe("core", () => {
             m.redo(1);
 
             m.set(h, 7);
-            expect(h).toEqual([
-                [new Index(1, 0), 0],
-                [new Index(2, 4), 7]
-            ]);
+            expect(h).toEqual([[new Index(1, 0), 0], [new Index(2, 4), 7]]);
             m.save();
             expect(m.getCurrentIndex()).toBe(2);
         });

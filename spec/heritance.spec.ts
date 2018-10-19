@@ -49,7 +49,6 @@ describe("hesitance", () => {
         expect(mother).toBeInstanceOf(Mother);
     });
 
-
     test("static", () => {
         expect(Child.childStatic()).toEqual(0);
         expect(Child.staticOverridden()).toEqual(0);
@@ -62,5 +61,4 @@ describe("hesitance", () => {
         expect(Child.staticOverridden()).toEqual(0);
         expect(Mother.motherStatic()).toEqual(1);
     });
-
 });

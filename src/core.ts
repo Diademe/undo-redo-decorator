@@ -14,7 +14,10 @@ export class SuperArray<T> extends Array<T> {
         this[this.length - 1] = value;
     }
 
-    public reverseFindIndex(f: (elt: T, index: number, history: SuperArray<T>) => boolean, from?: number): number {
+    public reverseFindIndex(
+        f: (elt: T, index: number, history: SuperArray<T>) => boolean,
+        from?: number
+    ): number {
         from = from === undefined ? this.length - 1 : from;
         for (let index = from; index >= 0; index--) {
             if (f(this[index], index, this)) {
@@ -26,8 +29,7 @@ export class SuperArray<T> extends Array<T> {
 }
 
 export class Index {
-    constructor(public indexVersion: number, public redoVersion: number) {
-    }
+    constructor(public indexVersion: number, public redoVersion: number) {}
     /**
      * this.before(that)
      *   -1 if this before that
@@ -35,8 +37,12 @@ export class Index {
      *   1 if this after that
      */
     public before(that: Index): number {
-        if (this.redoVersion < that.redoVersion) { return -1; }
-        if (this.redoVersion === that.redoVersion) { return this.indexVersion - that.indexVersion; }
+        if (this.redoVersion < that.redoVersion) {
+            return -1;
+        }
+        if (this.redoVersion === that.redoVersion) {
+            return this.indexVersion - that.indexVersion;
+        }
         return 1;
     }
 }
@@ -45,7 +51,10 @@ export class Index {
  * State.Dirty : work in progress, not yet saved
  * State.Clean : no work done after the last save
  */
-enum State { Dirty, Clean }
+enum State {
+    Dirty,
+    Clean
+}
 /**
  * keep track of the history.
  */
@@ -92,9 +101,18 @@ export class MasterIndex {
      */
     public undo(index?: number): void {
         // undefined because index can be 0
-        index = index !== undefined ? index : Math.max(this.getCurrentIndex() - 1, 0);
+        index =
+            index !== undefined
+                ? index
+                : Math.max(this.getCurrentIndex() - 1, 0);
         if (index >= this.getCurrentIndex() || index < 0) {
-            throw Error("undo(i): i should be in [0, getCurrentIndex()] but i=" + index + " not in [0, " + this.getCurrentIndex() + "]");
+            throw Error(
+                "undo(i): i should be in [0, getCurrentIndex()] but i=" +
+                    index +
+                    " not in [0, " +
+                    this.getCurrentIndex() +
+                    "]"
+            );
         }
         this.index = index;
         this.lastState = State.Clean;
@@ -116,23 +134,34 @@ export class MasterIndex {
      */
     public redo(index?: number): void {
         index = index !== undefined ? index : this.getCurrentIndex() + 1;
-        if (index <= this.getCurrentIndex() || index >= this.branchHistory.length) {
-            throw Error("redo(i): i should be in greater that getCurrentIndex() but i=" + index + " > " + this.getCurrentIndex());
+        if (
+            index <= this.getCurrentIndex() ||
+            index >= this.branchHistory.length
+        ) {
+            throw Error(
+                "redo(i): i should be in greater that getCurrentIndex() but i=" +
+                    index +
+                    " > " +
+                    this.getCurrentIndex()
+            );
         }
         this.index = Math.min(index, this.branchHistory.length - 1);
         this.lastState = State.Clean;
     }
 
-    private findIndex<T> (slaveIndexHistory: SuperArray<[Index, T]>) {
+    private findIndex<T>(slaveIndexHistory: SuperArray<[Index, T]>) {
         if (slaveIndexHistory.length === 0) {
             return -1;
         }
 
         const slaveLastRedo = slaveIndexHistory.last[0].redoVersion;
 
-        const iMaster = this.branchHistory.reverseFindIndex((masterRedoVersion: number) => {
-            return masterRedoVersion <= slaveLastRedo;
-        }, this.index);
+        const iMaster = this.branchHistory.reverseFindIndex(
+            (masterRedoVersion: number) => {
+                return masterRedoVersion <= slaveLastRedo;
+            },
+            this.index
+        );
         const indexMaster = new Index(iMaster, this.branchHistory[iMaster]);
         const iSlave = slaveIndexHistory.reverseFindIndex(([indexSlave, _]) => {
             return indexSlave.before(indexMaster) <= 0;
@@ -168,13 +197,15 @@ export class MasterIndex {
         this.lastState = State.Dirty;
         slaveIndexHistory.last = [new Index(this.index, this.lastRedo), obj];
     }
+
+    public get<T>(slaveIndexHistory: SuperArray<[Index, T]>): number {
+        return this.findIndex(slaveIndexHistory);
+    }
 }
 
 export class UndoRedo<T extends Object> {
     private index: MasterIndex;
-    constructor(private watchable: T) {
-
-    }
+    constructor(private watchable: T) {}
     /**
      * save: the current state is saved
      * return true if there was something to save

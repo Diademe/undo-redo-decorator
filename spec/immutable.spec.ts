@@ -9,7 +9,6 @@ class CustomMap extends Map {
                 this.set(k, v);
             }
         }
-
     }
 }
 
@@ -73,7 +72,11 @@ describe("immutable", () => {
                 x.forEach((val1, val2) => expect(val1).toBe(val2));
                 expect(Array.from(x.values())).toEqual([1, 2, 3]);
                 expect(Array.from(x.keys())).toEqual([1, 2, 3]);
-                expect(Array.from(x.entries())).toEqual([[1, 1], [2, 2], [3, 3]]);
+                expect(Array.from(x.entries())).toEqual([
+                    [1, 1],
+                    [2, 2],
+                    [3, 3]
+                ]);
                 for (const k of x) {
                     expect(k).toBe(k);
                 }
@@ -97,7 +100,11 @@ describe("immutable", () => {
                 expect(x.get(1)).toBe("1");
                 expect(Array.from(x.values())).toEqual(["1", "2", "3"]);
                 expect(Array.from(x.keys())).toEqual([1, 2, 3]);
-                expect(Array.from(x.entries())).toEqual([[1, "1"], [2, "2"], [3, "3"]]);
+                expect(Array.from(x.entries())).toEqual([
+                    [1, "1"],
+                    [2, "2"],
+                    [3, "3"]
+                ]);
                 x.forEach((value, key) => expect(value).toBe(key.toString()));
                 for (const [k, v] of x) {
                     expect(k.toString()).toBe(v);
@@ -121,25 +128,27 @@ describe("immutable", () => {
                 }
             });
             test("concat", () => {
-                expect(x.concat([4, 5])).toEqual(CustomArray.from([1, 2, 3, 4, 5]));
+                expect(x.concat([4, 5])).toEqual(
+                    CustomArray.from([1, 2, 3, 4, 5])
+                );
             });
             test("every", () => {
-                expect(x.every((v) => v > 0)).toBe(true);
-                expect(x.every((v) => v < 2)).toBe(false);
+                expect(x.every(v => v > 0)).toBe(true);
+                expect(x.every(v => v < 2)).toBe(false);
             });
             test("fill", () => {
                 expect(x.fill(0, 2, 4)).toEqual(CustomArray.from([1, 2, 0]));
             });
             test("filter", () => {
-                expect(x.filter((v) => v % 2)).toEqual(CustomArray.from([1, 3]));
+                expect(x.filter(v => v % 2)).toEqual(CustomArray.from([1, 3]));
             });
             test("find", () => {
-                expect(x.find((v) => v % 2 !== 0)).toEqual(1);
-                expect(x.find((v) => v < 0)).toBeUndefined();
+                expect(x.find(v => v % 2 !== 0)).toEqual(1);
+                expect(x.find(v => v < 0)).toBeUndefined();
             });
             test("findIndex", () => {
-                expect(x.findIndex((v) => v % 2 !== 0)).toEqual(0);
-                expect(x.findIndex((v) => v < 0)).toEqual(-1);
+                expect(x.findIndex(v => v % 2 !== 0)).toEqual(0);
+                expect(x.findIndex(v => v < 0)).toEqual(-1);
             });
             test("forEach", () => {
                 x.forEach((e, i) => {
@@ -157,7 +166,7 @@ describe("immutable", () => {
                 expect(Array.from(x.keys())).toEqual([0, 1, 2]);
             });
             test("map", () => {
-                expect(x.map((e) => e * 2)).toEqual(CustomArray.from([2, 4, 6]));
+                expect(x.map(e => e * 2)).toEqual(CustomArray.from([2, 4, 6]));
             });
             test("pop", () => {
                 expect(x.pop()).toEqual(3);
@@ -181,7 +190,9 @@ describe("immutable", () => {
             expect(x.getDay()).toBe(0);
             expect(x.getHours()).toBe(3);
             expect(x.toUTCString()).toBe("Sun, 17 Dec 1995 02:24:00 GMT");
-            expect(x[Symbol.toPrimitive]("string")).toBe("Sun Dec 17 1995 03:24:00 GMT+0100 (Romance Standard Time)");
+            expect(x[Symbol.toPrimitive]("string")).toBe(
+                "Sun Dec 17 1995 03:24:00 GMT+0100 (Romance Standard Time)"
+            );
             expect(x.valueOf()).toBe(819167040000);
         });
     });
@@ -192,7 +203,8 @@ describe("immutable", () => {
             title: string,
             ctor: new (...args: any[]) => Collection<K, V>,
             clone: (arg: Collection<K, V>) => Collection<K, V>,
-            args: any) {
+            args: any
+        ) {
             test(title, () => {
                 const collOriginal = new ctor(args);
                 const collCloned = clone(collOriginal);
@@ -208,11 +220,15 @@ describe("immutable", () => {
         }
         collection("ES6 Set", Set, immutable.set, [1, 2, 3]);
         collection("custom Set", CustomSet, immutable.set, [1, 2, 3]);
-        collection("ES6 Map", Map, immutable.map, [[1, "1"], [2, "2"], [3, "3"]]);
-        collection("custom Map", CustomMap, immutable.map, [[1, "1"], [2, "2"], [3, "3"]]);
-
-
+        collection("ES6 Map", Map, immutable.map, [
+            [1, "1"],
+            [2, "2"],
+            [3, "3"]
+        ]);
+        collection("custom Map", CustomMap, immutable.map, [
+            [1, "1"],
+            [2, "2"],
+            [3, "3"]
+        ]);
     });
-
-
 });

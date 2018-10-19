@@ -1,6 +1,8 @@
-export function proxyHandler<T extends object, K extends keyof T>(obj: T) {
+import { UndoRedo } from "./core";
+
+export function proxyHandler<T extends Object, K extends keyof T>(proxy: T) {
     return {
-        get (target: T, propKey: K, receiver: any) {
+        get(target: T, propKey: K, receiver: any) {
             let result: T[K];
             switch (propKey) {
                 case undefined:
@@ -10,7 +12,8 @@ export function proxyHandler<T extends object, K extends keyof T>(obj: T) {
                     break;
                 case Symbol.toPrimitive:
                 default:
-                    const isFunction = Reflect.get(target, propKey) instanceof Function;
+                    const isFunction =
+                        Reflect.get(target, propKey) instanceof Function;
                     if (isFunction) {
                         result = Reflect.get(target, propKey).bind(target);
                     }
@@ -19,19 +22,41 @@ export function proxyHandler<T extends object, K extends keyof T>(obj: T) {
                     }
                     break;
             }
-            console.log("GET: " + target.constructor.name + "[" + propKey.toString() + "] = " + result);
+            console.log(
+                "GET: " +
+                    target.constructor.name +
+                    "[" +
+                    propKey.toString() +
+                    "] = " +
+                    result
+            );
             return result;
         },
-        getPrototypeOf () { return obj; },
-        set (target: T, propKey: K, value: any, receiver: any) {
-            const origValue = target[propKey] as T[K];
-            target[propKey] = value;
-            console.log("SET: " + target.constructor.name + "[" + propKey.toString() + "] = " + value + "(" + origValue + ")");
-            return true;
+        getPrototypeOf() {
+            return proxy;
         },
-        apply (target: T, thisArg: any, argArray?: any) {
-            Reflect.apply(target as Function, thisArg, argArray);
-            console.log("APPLY:" + target.constructor.name , "(" + (argArray ? argArray.toString() : "[]")  + ")");
+        set(target: T, propKey: K, value: any, receiver: any) {
+            const origValue = Reflect.get(target, propKey, receiver) as T[K];
+            const res = Reflect.set(target, propKey, value, receiver);
+            console.log(
+                "SET: " +
+                    target.constructor.name +
+                    "[" +
+                    propKey.toString() +
+                    "] = " +
+                    value +
+                    "(" +
+                    origValue +
+                    ")"
+            );
+            return res;
+        },
+        apply(target: T, thisArg: any, argArray?: any) {
+            Reflect.apply(target as any, thisArg, argArray);
+            console.log(
+                "APPLY:" + target.constructor.name,
+                "(" + (argArray ? argArray.toString() : "[]") + ")"
+            );
         }
     } as ProxyHandler<T>;
 }

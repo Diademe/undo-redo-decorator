@@ -1,20 +1,20 @@
 {
-  "compilerOptions": {
-    "noImplicitReturns": true,
-    "noImplicitAny": true,
-    "declarationDir": "./dist",
-    "outDir": "./dist",
-    "preserveConstEnums": false,
-    "removeComments": true,
-    "target": "es6",
-    "module": "commonjs",
-    "stripInternal": true,
-    "strictNullChecks": false,
-    "experimentalDecorators": true,
-    "noEmitHelpers": false,
-    "declaration": true,
-    "sourceMap": true,
-    "moduleResolution": "node",
-    "declarationMap":true
-  }
+    "compilerOptions": {
+        "noImplicitReturns": true,
+        "noImplicitAny": true,
+        "declarationDir": "./dist",
+        "outDir": "./dist",
+        "preserveConstEnums": false,
+        "removeComments": true,
+        "target": "es6",
+        "module": "commonjs",
+        "stripInternal": true,
+        "strictNullChecks": false,
+        "experimentalDecorators": true,
+        "noEmitHelpers": false,
+        "declaration": true,
+        "sourceMap": true,
+        "moduleResolution": "node",
+        "declarationMap": true
+    }
 }
