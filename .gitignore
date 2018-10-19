@@ -7,3 +7,8 @@ dist
 /dcerialize.code-workspace
 
 /spec/playground.spec.ts
+/coverage/*
+/lcov-report/
+/clover.xml
+/coverage-final.json
+/lcov.info

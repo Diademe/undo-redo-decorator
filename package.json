@@ -1,40 +1,46 @@
 {
-  "name": "undo-redo-proxy",
-  "version": "1.0.0",
-  "description": "",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "scripts": {
-    "build": "tsc --project src/tsconfig.json",
-    "test": "jest --colors",
-    "test:debug": "node --inspect-brk node_modules/.bin/jest --runInBand",
-    "lint": "tslint -c tslint.json 'src/**/*.ts' && tslint -c tslint.json 'spec/**/*.ts'"
-  },
-  "author": "Diademe",
-  "license": "Mit",
-  "devDependencies": {
-    "@types/jest": "^23.3.5",
-    "jest": "^23.6.0",
-    "jest-cli": "^23.6.0",
-    "prettier": "^1.12.1",
-    "ts-jest": "^23.10.4",
-    "ts-node": "^7.0.1",
-    "tslint": "^5.10.0",
-    "typescript": "^3.1.2"
-  },
-  "jest": {
-    "testRegex": "/spec/.*\\.spec\\.([tj]sx?)$",
-    "transform": {
-      "^.+\\.[jt]sx?$": "ts-jest"
+    "name": "undo-redo-proxy",
+    "version": "1.0.0",
+    "description": "",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "scripts": {
+        "build": "tsc --project src/tsconfig.json",
+        "test": "jest --color",
+        "coverage": "jest --coverage",
+        "test:debug": "node --inspect-brk node_modules/.bin/jest --runInBand",
+        "lint": "tslint -c tslint.json 'src/**/*.ts' && tslint -c tslint.json 'spec/**/*.ts'"
     },
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js",
-      "jsx"
-    ]
-  },
-  "dependencies": {
-    "typescript": "^2.8.3"
-  }
+    "author": "Diademe",
+    "license": "Mit",
+    "devDependencies": {
+        "@types/jest": "^23.3.5",
+        "jest": "^23.6.0",
+        "jest-cli": "^23.6.0",
+        "prettier": "^1.14.3",
+        "ts-jest": "^23.10.4",
+        "ts-node": "^7.0.1",
+        "tslint": "^5.10.0",
+        "typescript": "^3.1.2"
+    },
+    "jest": {
+        "testRegex": "/spec/.*\\.spec\\.([tj]sx?)$",
+        "transform": {
+            "^.+\\.[jt]sx?$": "ts-jest"
+        },
+        "moduleFileExtensions": [
+            "ts",
+            "tsx",
+            "js",
+            "jsx"
+        ],
+        "collectCoverageFrom": [
+            "src/**/*.ts",
+            "spec/**/*.ts"
+        ],
+        "coverageDirectory": "."
+    },
+    "dependencies": {
+        "typescript": "^2.8.3"
+    }
 }
