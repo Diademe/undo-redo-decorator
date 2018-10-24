@@ -2,17 +2,32 @@ import { proxyHandler } from "./handler";
 import { MasterIndex, History } from "./core";
 import { clone } from "./clone";
 import { Constructor } from "./type";
+import { getAllPropertyNames } from "./utils";
 
 /**
  * class decorator that replace the class and return a proxy around it
  * @param ctor the constructor of the decorated class
  */
-export function Undoable<T extends { new(...args: any[]): any }>(ctor: T) {
-    const anonymousClass = class extends ctor {
-        static readonly originalConstructor = ctor;
+export function Undoable<T extends Constructor<any>, K extends keyof T>(
+    ctor: T
+) {
+    const anonymousClass = class Tmp extends ctor {
+        // tslint:disable-next-line:variable-name
+        __originalConstructor__ = ctor;
+        // tslint:disable-next-line:variable-name
+        __history__: Map<K, History<T>>;
+        // tslint:disable-next-line:variable-name
+        __master__: MasterIndex;
+        // tslint:disable-next-line:variable-name
+        __proxy__: this;
+        // tslint:disable-next-line:variable-name
+        __inited__ = false;
         constructor(...args: any[]) {
             super(...args);
-            return new Proxy (this, proxyHandler(this));
+            this.__history__ = new Map<K, History<T>>();
+            this.__proxy__ = new Proxy(this, proxyHandler());
+            return this.__proxy__;
+        }
         __init__() {
             if (!this.__inited__) {
                 for (const [propKey, descriptor] of getAllPropertyNames(this)) {

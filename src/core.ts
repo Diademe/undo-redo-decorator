@@ -25,8 +25,35 @@ export function __initialization__(proxy: any, masterIndex: MasterIndex) {
     }
 }
 
+export class History<T> {
+    private history: SuperArray<[Index, T]>;
+    constructor(private masterIndex: MasterIndex, obj: T) {
+        this.history = new SuperArray<[Index, T]>();
+        this.masterIndex.set(this.history, obj);
+    }
+
+    get(): T {
+        const index = this.masterIndex.get(this.history);
+        if (index === -1) {
+            throw Error(
+                `the object ${JSON.stringify(
+                    this
+                )} is not define for this state of undo ${this.masterIndex.getCurrentIndex()}
+                it was defined at ${this.history[0][0].indexVersion}`
+            );
         }
-        return 1;
+        return this.history[index][1];
+    }
+
+    set(obj: T) {
+        this.masterIndex.set(this.history, obj);
+    }
+
+    clone(): this {
+        const res = Object.create(Object.getPrototypeOf(this));
+        res.masterIndex = this.masterIndex;
+        res.history = SuperArray.from(this.history);
+        return res;
     }
 }
 
@@ -108,11 +135,11 @@ export class MasterIndex {
 
     public maxRedoPossible() {
         // -1 because branchHistory is initialized to [0]
-        return this.branchHistory.length - 1;
+        return this.branchHistory.length - 1 - this.getCurrentIndex();
     }
 
     /**
-     * redo: go a futur saved state (possible after an undo)
+     * redo: go a future saved state (possible after an undo)
      * @param index to which state do you want to go (default : last saved state)
      */
     public redo(index?: number): void {
@@ -158,7 +185,7 @@ export class MasterIndex {
      */
     public set<T>(slaveIndexHistory: SuperArray<[Index, T]>, obj: T): void {
         if (this.redoPossible()) {
-            // parent node: index from which we branche
+            // parent node: index from which we branch
             this.branchHistory.length = this.index + 1;
             this.lastRedo = this.lastRedo + 1;
         }
@@ -186,49 +213,6 @@ export class MasterIndex {
     }
 }
 
-export class UndoRedo<T extends Object> {
-    private index: MasterIndex;
-    constructor(private watchable: T) {}
-    /**
-     * save: the current state is saved
-     * return true if there was something to save
-     */
-    public save(): boolean {
-        return this.index.save();
-    }
 
-    /**
-     * undo: go back to a previous saved state
-     * @param index to which state do you want to go (default : last saved state)
-     */
-    public undo() {
-        this.index.undo();
-    }
 
-    /**
-     * redo: go a futur saved state (possible after an undo)
-     * @param index to which state do you want to go (default : last saved state)
-     */
-    public redo(index?: number): void {
-        this.index.redo(index);
-    }
 
-    public getCurrentIndex(): number {
-        return this.index.getCurrentIndex();
-    }
-
-    public undoPossible() {
-        return this.index.undoPossible();
-    }
-
-    public redoPossible() {
-        return this.index.redoPossible();
-    }
-}
-
-/**
- * TODO :
- * 1 - provide an optional new decorator to clone an object
- * 2 - deal with the index in case of an undo (tuple ?)
- * 3 - hidden method to set UndoRedo in proxy (Symbole)
- */
