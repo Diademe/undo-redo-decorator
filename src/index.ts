@@ -2,6 +2,11 @@ import { MasterIndex, __initialization__ } from "./core";
 
 export { Undoable, cloneClass, cloneFunc } from "./annotation";
 export { immutable } from "./immutable";
+/**
+ * todo improve sort and co
+ */
+
+export class UndoRedo<T extends Object> {
     private index: MasterIndex;
     constructor(private watchable: T, undoRedo?: UndoRedo<T>) {
         this.index = undoRedo && undoRedo instanceof UndoRedo
