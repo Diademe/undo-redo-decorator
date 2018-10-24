@@ -4,7 +4,7 @@ enum Clone {
     Function
 }
 
-const cloneMap = new Map<
+export const cloneMap = new Map<
     Object,
     [Clone.Class, Key] | [Clone.Function, GenericIdentityFunc<Object>]
 >();
