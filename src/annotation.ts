@@ -18,11 +18,14 @@ export function Undoable<T extends { new(...args: any[]): any }>(ctor: T) {
     return anonymousClass;
 }
 
-export function CloneClass<T, K extends keyof T>(
+export function cloneClass<T extends Object, K extends keyof T>(
     target: T,
     keyName: K,
     _: TypedPropertyDescriptor<() => T>
 ): void {
+    if (Reflect.get(target, "__isProxy__")) {
+        throw Error("try to set a clone on an un-managed class");
+    }
     clone.setClass(target, keyName);
 }
 
