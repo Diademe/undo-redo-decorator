@@ -16,6 +16,27 @@ describe("core", () => {
         });
     });
 
+    describe("SuperArray", () => {
+        let val: number[];
+        let a: SuperArray<number[]>;
+        beforeEach(() => {
+            val = [1];
+            a = new SuperArray();
+            a.push(val);
+        })
+        test("from", () => {
+            const b = SuperArray.from(val);
+            expect(b).toBeInstanceOf(SuperArray);
+            expect(b).not.toEqual(val);
+        });
+
+        test("clone", () => {
+            const b = a.clone();
+            expect(b).toBeInstanceOf(SuperArray);
+            expect(b).not.toEqual(a);
+        });
+    });
+
     describe("History", () => {
         test("last", () => {
             const a = new SuperArray<number>();
@@ -104,6 +125,23 @@ describe("core", () => {
                 expect(m.redoPossible()).toBe(true);
                 m.redo();
                 expect(m.redoPossible()).toBe(false);
+            });
+
+            test("maxRedoPossible", () => {
+                expect(m.maxRedoPossible()).toBe(0);
+                m.set(h, 1);
+                m.save();
+                m.set(h, 2);
+                m.save();
+
+                m.undo();
+                expect(m.maxRedoPossible()).toBe(1);
+
+                m.undo();
+                expect(m.maxRedoPossible()).toBe(2);
+
+                m.redo();
+                expect(m.maxRedoPossible()).toBe(1);
             });
 
             test("undo", () => {

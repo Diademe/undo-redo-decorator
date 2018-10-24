@@ -87,7 +87,7 @@ describe("immutable", () => {
 
         describe("CustomMap", () => {
             let x: CustomMap;
-            beforeAll(() => {
+            beforeEach(() => {
                 x = new CustomMap([[1, "1"], [2, "2"], [3, "3"]]);
             });
             test("Map", () => {
