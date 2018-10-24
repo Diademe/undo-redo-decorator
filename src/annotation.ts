@@ -1,7 +1,7 @@
 import { proxyHandler } from "./handler";
-import { MasterIndex, SuperArray, Index } from "./core";
+import { MasterIndex, History } from "./core";
 import { clone } from "./clone";
-import { Key, GenericIdentityFunc } from "./type";
+import { Constructor } from "./type";
 
 /**
  * class decorator that replace the class and return a proxy around it

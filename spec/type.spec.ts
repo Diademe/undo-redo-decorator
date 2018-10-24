@@ -1,5 +1,4 @@
-import { MasterIndex } from "../src/core";
-import { History } from "../src/type";
+import { MasterIndex, History } from "../src/core";
 
 describe("type", () => {
     test("get | set", () => {

@@ -1,4 +1,5 @@
-import { MasterIndex, Index, SuperArray } from "../src/core";
+import { MasterIndex } from "../src/core";
+import { Index, SuperArray } from "../src/type";
 
 describe("core", () => {
     describe("Index", () => {

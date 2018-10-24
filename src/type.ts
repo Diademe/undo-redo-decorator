@@ -1,29 +1,62 @@
-import { SuperArray, Index, MasterIndex } from "./core";
-
 export type Key = string | number | symbol;
-export type GenericIdentityFunc<T> = (arg: T) => T;
-
-export class History<T> {
-    private history: SuperArray<[Index, T]>;
-    constructor(private masterIndex: MasterIndex, obj: T) {
-        this.history = new SuperArray<[Index, T]>();
-        this.masterIndex.set(this.history, obj);
-    }
-
-    get(): T {
-        const index = this.masterIndex.get(this.history);
-        if (index === -1) {
-            throw Error(
-                `the object ${JSON.stringify(
-                    this
-                )} is not define for this state of undo ${this.masterIndex.getCurrentIndex()}
-                it was defined at ${this.history[0][0].indexVersion}`
-            );
+export type GenericIdentityFunc<T extends Object> = (arg: T) => T;
+export type Constructor<T> = new (...args: any[]) => T;
+export class Index {
+    constructor(public indexVersion: number, public redoVersion: number) {}
+    /**
+     * this.before(that)
+     *   -1 if this before that
+     *   0 if this == that
+     *   1 if this after that
+     */
+    public before(that: Index): number {
+        if (this.redoVersion < that.redoVersion) {
+            return -1;
         }
-        return this.history[index][1];
-    }
-
-    set(obj: T) {
-        this.masterIndex.set(this.history, obj);
+        if (this.redoVersion === that.redoVersion) {
+            return this.indexVersion - that.indexVersion;
+        }
+        return 1;
     }
 }
+
+export class SuperArray<T> extends Array<T> {
+    constructor() {
+        super();
+    }
+    public get beforeLast() {
+        return this[this.length - 2];
+    }
+
+    public get last() {
+        return this[this.length - 1];
+    }
+
+    public set last(value: T) {
+        this[this.length - 1] = value;
+    }
+
+    public static from<T>(iterable: Iterable<T> | ArrayLike<T>): SuperArray<T> {
+        const iterables = Array.from<T>((iterable as any) || ([] as any));
+        iterables.unshift(undefined);
+        return new (Function.prototype.bind.apply(SuperArray, iterables))();
+    }
+
+    public clone() {
+        return SuperArray.from<T>(this);
+    }
+
+    public reverseFindIndex(
+        f: (elt: T, index: number, history: SuperArray<T>) => boolean,
+        from?: number
+    ): number {
+        from = from === undefined ? this.length - 1 : from;
+        for (let index = from; index >= 0; index--) {
+            if (f(this[index], index, this)) {
+                return index;
+            }
+        }
+        return -1;
+    }
+}
+

@@ -1,47 +1,11 @@
-export class SuperArray<T> extends Array<T> {
-    constructor() {
-        super();
-    }
-    public get beforeLast() {
-        return this[this.length - 2];
-    }
 
-    public get last() {
-        return this[this.length - 1];
-    }
+import { SuperArray, Index } from "./type";
 
-    public set last(value: T) {
-        this[this.length - 1] = value;
-    }
-
-    public reverseFindIndex(
-        f: (elt: T, index: number, history: SuperArray<T>) => boolean,
-        from?: number
-    ): number {
-        from = from === undefined ? this.length - 1 : from;
-        for (let index = from; index >= 0; index--) {
-            if (f(this[index], index, this)) {
-                return index;
             }
         }
-        return -1;
     }
 }
 
-export class Index {
-    constructor(public indexVersion: number, public redoVersion: number) {}
-    /**
-     * this.before(that)
-     *   -1 if this before that
-     *   0 if this == that
-     *   1 if this after that
-     */
-    public before(that: Index): number {
-        if (this.redoVersion < that.redoVersion) {
-            return -1;
-        }
-        if (this.redoVersion === that.redoVersion) {
-            return this.indexVersion - that.indexVersion;
         }
         return 1;
     }
