@@ -13,8 +13,8 @@ export namespace clone {
     export function setClass<T, K extends keyof T>(obj: T, key: K) {
         cloneMap.set(obj, [Clone.Class, key]);
     }
-    export function setFunction<T>(obj: T, func: GenericIdentityFunc<T>) {
-        cloneMap.set(obj, [Clone.Function, func]);
+    export function setFunction<T extends Object>(ctor: new(args: any[]) => T, func: GenericIdentityFunc<T>) {
+        cloneMap.set(ctor, [Clone.Function, func]);
     }
     export function get<T extends Object>(instance: T): T {
         if (!cloneMap.has(get)) {
