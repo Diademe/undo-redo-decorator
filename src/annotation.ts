@@ -26,9 +26,9 @@ export function CloneClass<T, K extends keyof T>(
     clone.setClass(target, keyName);
 }
 
-export function CloneFunc<T extends Object>(
-    obj: T,
-    func: GenericIdentityFunc<T>
+export function cloneFunc<T extends Object>(
+    ctor: new (...args: any[]) => T,
+    func: (arg: T) => T
 ): void {
-    clone.setFunction(obj, func);
+    clone.setFunction(ctor, func);
 }
