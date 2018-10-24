@@ -112,6 +112,9 @@ describe("immutable", () => {
                 x.clear();
                 expect(Array.from(x.entries())).toEqual([]);
             });
+            test("[Symbol​.iterator]()", () => {
+                expect(Array.from(x[Symbol​.iterator]())).toEqual([[1, "1"], [2, "2"], [3, "3"]]);
+            });
         });
 
         describe("CustomArray", () => {
@@ -128,8 +131,10 @@ describe("immutable", () => {
                 }
             });
             test("concat", () => {
-                expect(x.concat([4, 5])).toEqual(
-                    CustomArray.from([1, 2, 3, 4, 5])
+                const res = x.concat([4, 5]);
+                const expected = CustomArray.from([1, 2, 3, 4, 5]);
+                expect(res).toEqual(
+                    expected
                 );
             });
             test("every", () => {
@@ -180,6 +185,9 @@ describe("immutable", () => {
             test("sort", () => {
                 expect(x.reverse()).toEqual(CustomArray.from([3, 2, 1])); // in place
                 expect(x.sort()).toEqual(CustomArray.from([1, 2, 3])); // in place
+            });
+            test("[Symbol​.iterator]()", () => {
+                expect(Array.from(x[Symbol​.iterator]())).toEqual([1, 2, 3]);
             });
         });
 
