@@ -1,6 +1,25 @@
 
 import { SuperArray, Index } from "./type";
 
+export function __initialization__(proxy: any, masterIndex: MasterIndex) {
+    if (proxy.__proxy__) {
+        if (proxy.__master__ !== masterIndex) {
+            proxy.__master__ = masterIndex;
+            proxy.__init__();
+            Object.keys(proxy).forEach(member => {
+                __initialization__(proxy[member], masterIndex);
+            });
+            Object.keys(proxy.constructor).forEach(member => {
+                __initialization__(proxy.constructor[member], masterIndex);
+            });
+            if (
+                [Array, Map, Set].some(
+                    collection => proxy instanceof collection
+                )
+            ) {
+                [...proxy.entries()].forEach(([_, val]) =>
+                    __initialization__(val, masterIndex)
+                );
             }
         }
     }

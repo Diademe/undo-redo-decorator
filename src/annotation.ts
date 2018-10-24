@@ -13,8 +13,36 @@ export function Undoable<T extends { new(...args: any[]): any }>(ctor: T) {
         constructor(...args: any[]) {
             super(...args);
             return new Proxy (this, proxyHandler(this));
+        __init__() {
+            if (!this.__inited__) {
+                for (const [propKey, descriptor] of getAllPropertyNames(this)) {
+                    if (!
+                        (descriptor.writable === false ||
+                        typeof this[propKey] === "function" ||
+                        [
+                                "constructor",
+                                "prototype",
+                                "__proxy__",
+                                "__master__",
+                                "__inited__",
+                                "__history__",
+                                "__originalConstructor__"
+                            ].indexOf(propKey) !== -1)
+                    ) {
+                        this.__history__.set(
+                            propKey as any,
+                            new History<any>(
+                                this.__master__,
+                                (this as any)[propKey]
+                            )
+                        );
+                    }
+                }
+                this.__inited__ = true;
+            }
         }
     };
+
     return anonymousClass;
 }
 
