@@ -6,6 +6,10 @@ export function proxyHandler<T extends Object, K extends keyof T>() {
             const historyMap = (target as any).__history__;
             const historyTarget: History<T[K]> = historyMap.get(propKey);
             let result: T[K];
+            // we should not save setter getter otherwise the logic inside them will be bypassed
+            if ((getInheritedPropertyDescriptor(target, propKey) || {}).set) {
+                return Reflect.get(target, propKey, receiver);
+            }
             switch (propKey) {
                 case undefined:
                     throw TypeError(propKey.toString() + " is undefined");
@@ -56,9 +60,14 @@ export function proxyHandler<T extends Object, K extends keyof T>() {
             if (!(target as any).__inited__) {
                 return Reflect.set(target, propKey, value);
             }
+            // we should not save setter getter otherwise the logic inside them will be bypassed
+            if ((getInheritedPropertyDescriptor(target, propKey) || {}).set) {
+                return Reflect.set(target, propKey, value, receiver);
+            }
             if ((value as any).__proxy__) {
                 __initialization__(value, (target as any).__master__);
             }
+
             let result: boolean;
             switch (propKey) {
                 case undefined:
