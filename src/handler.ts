@@ -56,6 +56,9 @@ export function proxyHandler<T extends Object, K extends keyof T>() {
             if (!(target as any).__inited__) {
                 return Reflect.set(target, propKey, value);
             }
+            if ((value as any).__proxy__) {
+                __initialization__(value, (target as any).__master__);
+            }
             let result: boolean;
             switch (propKey) {
                 case undefined:
