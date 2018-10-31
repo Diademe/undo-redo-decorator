@@ -2,7 +2,7 @@ import { cloneClass, Undoable, cloneFunc } from "../src";
 import { clone } from "../src/clone";
 
 describe("clone", () => {
-    @Undoable
+    @Undoable()
     class Foo {
         public array = [1, 2, 3];
         constructor(public name: string) {}
@@ -12,7 +12,7 @@ describe("clone", () => {
         }
     }
 
-    @Undoable
+    @Undoable()
     class Bar {
         public array = [4, 5, 6];
         constructor(public name: string) {}
@@ -23,7 +23,7 @@ describe("clone", () => {
         return res;
     });
 
-    @Undoable
+    @Undoable()
     class Baz {
         public array = [7, 8, 9];
         constructor(public name: string) {}
@@ -31,7 +31,7 @@ describe("clone", () => {
 
     test("cloneClass", () => {
         const foo = new Foo("foo");
-        const fooClone = clone.get((foo as any).__originalConstructor__, foo);
+        const fooClone = clone.get((foo as any).__proxyInternal__.constructor.originalConstructor, foo);
         expect(fooClone).toBeInstanceOf(Foo);
         expect(fooClone.name).toEqual("clone of foo");
         expect(fooClone.array).toEqual(foo.array);
@@ -39,7 +39,7 @@ describe("clone", () => {
 
     test("cloneFunc", () => {
         const bar = new Bar("bar");
-        const barClone = clone.get((bar as any).__originalConstructor__, bar);
+        const barClone = clone.get((bar as any).__proxyInternal__.constructor.originalConstructor, bar);
         expect(barClone).toBeInstanceOf(Bar);
         expect(barClone.name).toEqual("clone of bar");
         expect(barClone.array).toEqual(bar.array);
@@ -47,7 +47,7 @@ describe("clone", () => {
 
     test("default", () => {
         const baz = new Baz("baz");
-        const bazClone = clone.get((baz as any).__originalConstructor__, baz);
+        const bazClone = clone.get((baz as any).__proxyInternal__.constructor.__originalConstructor__, baz);
         expect(bazClone).toBe(bazClone);
     });
 });

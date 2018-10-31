@@ -1,31 +1,33 @@
 import { __initialization__, History } from "./core";
+import { getInheritedPropertyDescriptor } from "./utils";
 
-export function proxyHandler<T extends Object, K extends keyof T>() {
+const deleted = {};
+
+export function proxyHandler<T extends Object, K extends keyof T>(proxyInternal: any) {
     return {
         get(target: T, propKey: K, receiver: any) {
-            const historyMap = (target as any).__history__;
+            const historyMap = proxyInternal.history;
             const historyTarget: History<T[K]> = historyMap.get(propKey);
             let result: T[K];
+            const descriptor = getInheritedPropertyDescriptor(target, propKey) || {};
             // we should not save setter getter otherwise the logic inside them will be bypassed
-            if ((getInheritedPropertyDescriptor(target, propKey) || {}).set) {
+            if (descriptor.set || descriptor.writable === false) {
                 return Reflect.get(target, propKey, receiver);
             }
             switch (propKey) {
                 case undefined:
                     throw TypeError(propKey.toString() + " is undefined");
                 case Symbol.iterator:
-                    result = (target as any)[Symbol.iterator].bind(target);
+                    result = target && typeof (target as any)[Symbol.iterator] === "function" ?
+                        (target as any)[Symbol.iterator].bind(target) :
+                        undefined;
                     break;
                 case "constructor":
-                case "__proxy__":
-                case "__inited__":
-                case "__master__":
-                case "__history__":
-                case "__originalConstructor__":
+                case "__proxyInternal__":
                     result = Reflect.get(target, propKey, receiver);
                     break;
                 default:
-                    if (!(target as any).__inited__) {
+                    if (!proxyInternal.inited) {
                         result = Reflect.get(target, propKey);
                         return typeof result === "function" ? result.bind(target) : result;
                     }
@@ -57,15 +59,15 @@ export function proxyHandler<T extends Object, K extends keyof T>() {
             return target;
         },
         set(target: T, propKey: K, value: any, receiver: any) {
-            if (!(target as any).__inited__) {
+            if (!proxyInternal.inited) {
                 return Reflect.set(target, propKey, value);
             }
             // we should not save setter getter otherwise the logic inside them will be bypassed
             if ((getInheritedPropertyDescriptor(target, propKey) || {}).set) {
                 return Reflect.set(target, propKey, value, receiver);
             }
-            if ((value as any).__proxy__) {
-                __initialization__(value, (target as any).__master__);
+            if (value && (value as any).__proxyInternal__) {
+                __initialization__(value, proxyInternal.master);
             }
 
             let result: boolean;
@@ -73,22 +75,18 @@ export function proxyHandler<T extends Object, K extends keyof T>() {
                 case undefined:
                     throw TypeError(propKey.toString() + " is undefined");
                 case "constructor":
-                case "__proxy__":
-                case "__inited__":
-                case "__master__":
-                case "__history__":
-                case "__originalConstructor__":
+                case "__proxyInternal__":
                     result = Reflect.set(target, propKey, value);
                     break;
                 default:
                     result = true;
                     break
             }
-            const history: Map<K, History<T[K]>> = (target as any).__history__;
+            const history: Map<K, History<T[K]>> = proxyInternal.history;
             if (!history.has(propKey)) {
                 history.set(propKey,
                     new History<any>(
-                    (target as any).__master__,
+                        proxyInternal.master,
                     value
                 ));
             }
@@ -104,6 +102,30 @@ export function proxyHandler<T extends Object, K extends keyof T>() {
                 "APPLY:" + target.constructor.name,
                 "(" + (argArray ? argArray.toString() : "[]") + ")"
             );
+        },
+        has(target: T, propKey: K) {
+            const history: Map<K, History<T[K]>> = proxyInternal.history;
+            if (history.has(propKey)) {
+                try {
+                    const val = history.get(propKey).get();
+                    if (val === deleted) {
+                        return false;
+                    }
+                    return true;
+                }
+                catch {
+                    return false;
+                }
+            }
+            return false;
+        },
+        deleteProperty(target: T, propKey: K) {
+            const history: Map<K, History<T[K]>> = proxyInternal.history;
+            if (history.has(propKey)) {
+                history.get(propKey).set(deleted as any);
+            }
+            return Reflect.deleteProperty(target, propKey)
         }
     } as ProxyHandler<T>;
 }
+

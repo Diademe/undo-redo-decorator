@@ -1,4 +1,4 @@
-import { MasterIndex, __initialization__ } from "./core";
+import { MasterIndex, __initialization__, History } from "./core";
 
 export { Undoable, cloneClass, cloneFunc } from "./annotation";
 export { immutable } from "./immutable";
@@ -8,11 +8,19 @@ export { immutable } from "./immutable";
 
 export class UndoRedo<T extends Object> {
     private index: MasterIndex;
+    private history: History<T>;
     constructor(private watchable: T, undoRedo?: UndoRedo<T>) {
-        this.index = undoRedo && undoRedo instanceof UndoRedo
-            ? (undoRedo as any).index
-            : new MasterIndex();
+        this.index =
+            undoRedo && undoRedo instanceof UndoRedo
+                ? (undoRedo as any).index
+                : new MasterIndex();
+        this.history =
+            undoRedo && undoRedo instanceof UndoRedo
+                ? (undoRedo as any).history
+                : new History<T>(this.index, this.watchable);
         __initialization__(this.watchable, this.index);
+        this.history.set(this.watchable);
+        this.index.save();
     }
     /**
      * save: the current state is saved
@@ -51,7 +59,7 @@ export class UndoRedo<T extends Object> {
     }
 
     public get(): T {
-        return this.watchable;
+        return this.history.get();
     }
 
     public maxRedoPossible() {

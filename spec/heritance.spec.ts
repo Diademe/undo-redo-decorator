@@ -1,7 +1,7 @@
 import { Undoable } from "../src/index";
 
 describe("hesitance", () => {
-    @Undoable
+    @Undoable()
     class Mother {
         motherName: string;
         nonStatic: string;
@@ -17,7 +17,7 @@ describe("hesitance", () => {
         }
     }
 
-    @Undoable
+    @Undoable()
     class Child extends Mother {
         childName: string;
         nonStatic: string;

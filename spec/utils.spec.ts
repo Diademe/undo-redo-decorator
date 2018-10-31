@@ -1,5 +1,5 @@
 import { Undoable } from "../src/index";
-import { is_constructor } from "../src/utils";
+import { is_constructor, getInheritedPropertyDescriptor } from "../src/utils";
 
 describe("utils", () => {
 
@@ -11,7 +11,7 @@ describe("utils", () => {
         };
     }
 
-    @Undoable
+    @Undoable()
     class Annotated {
         motherName: string;
         nonStatic: string;
@@ -56,6 +56,24 @@ describe("utils", () => {
         }
     }
 
+    class GetterSetter {
+        _member: number;
+        set SGMember(val: number) {
+            this._member = val;
+        }
+        get SGMember() {
+            return this._member + 1;
+        }
+        usualMember = 1;
+    }
+
+    @Undoable()
+    class Dummy extends GetterSetter {
+        constructor() {
+            super();
+        }
+    }
+
     test("is constructor", () => {
         // tslint:disable 
         expect(is_constructor(function(){ })).toBe(true);
@@ -75,5 +93,18 @@ describe("utils", () => {
         expect(is_constructor(new Number(1))).toBe(false);
         expect(is_constructor(Array.prototype)).toBe(false);
         expect(is_constructor(Function.prototype)).toBe(false);
+    });
+
+    test("Undoable warper member are not enumerable", () => {
+        const annotated = new Annotated();
+        expect(Object.keys(annotated).sort()).toEqual(["motherName", "nonStatic"]);
+    });
+
+    test("Setter Getter", () => {
+        const example = new Dummy();
+        expect(getInheritedPropertyDescriptor(example, "usualMember")).toBeDefined();
+        expect(getInheritedPropertyDescriptor(example, "SGMember")).toBeDefined();
+        expect(getInheritedPropertyDescriptor(example, "SGMember").set).toBeDefined();
+        expect(getInheritedPropertyDescriptor(example, "SGMember").get).toBeDefined();
     });
 });

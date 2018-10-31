@@ -1,9 +1,11 @@
-import { immutable, Undoable } from "../src/index";
+import { Map } from "../src/collection/map";
+import { Set } from "../src/collection/set";
+import { Undoable, UndoRedo } from "../src";
 
-@Undoable()
-class CustomMap extends Map {
+@Undoable(["_data"])
+class CustomMap<K, V> extends Map<K, V> {
     constructor(args?: any[]) {
-        super();
+        super(args);
         if (args) {
             for (const [k, v] of args) {
                 this.set(k, v);
@@ -12,8 +14,8 @@ class CustomMap extends Map {
     }
 }
 
-@Undoable()
-class CustomSet extends Set {
+@Undoable(["_data"])
+class CustomSet<K> extends Set<K> {
     constructor(args?: any[]) {
         super();
         if (args) {
@@ -58,62 +60,49 @@ class CustomDate extends Date {
 describe("immutable", () => {
     describe("collections", () => {
         describe("CustomSet", () => {
-            let x: CustomSet;
+            let x: CustomSet<number>;
+            let ud: UndoRedo<CustomSet<number>>;
             beforeEach(() => {
                 x = new CustomSet([1, 2, 3]);
+                ud = new UndoRedo<CustomSet<number>>(x);
             });
             test("Set", () => {
-                expect(x.has(1)).toBe(true);
-                expect(x.has(4)).toBe(false);
                 x.add(4);
-                expect(x.has(4)).toBe(true);
-                x.delete(4);
-                expect(x.has(4)).toBe(false);
-                x.forEach((val1, val2) => expect(val1).toBe(val2));
-                expect(Array.from(x.values())).toEqual([1, 2, 3]);
-                expect(Array.from(x.keys())).toEqual([1, 2, 3]);
-                expect(Array.from(x.entries())).toEqual([
-                    [1, 1],
-                    [2, 2],
-                    [3, 3]
-                ]);
-                for (const k of x) {
-                    expect(k).toBe(k);
-                }
-                x.clear();
-                expect(Array.from(x.entries())).toEqual([]);
+                expect(Array.from(x.values())).toEqual([1, 2, 3, 4])
             });
         });
 
         describe("CustomMap", () => {
-            let x: CustomMap;
+            let x: CustomMap<number, string>;
+            let ud: UndoRedo<CustomMap<number, string>>;
+
             beforeEach(() => {
                 x = new CustomMap([[1, "1"], [2, "2"], [3, "3"]]);
+                ud = new UndoRedo(x);
             });
-            test("Map", () => {
-                expect(x.has(1)).toBe(true);
-                expect(x.has(4)).toBe(false);
-                x.set(4, "4");
-                expect(x.has(4)).toBe(true);
-                x.delete(4);
-                expect(x.get(4)).toBeUndefined();
+            test("get", () => {
                 expect(x.get(1)).toBe("1");
-                expect(Array.from(x.values())).toEqual(["1", "2", "3"]);
-                expect(Array.from(x.keys())).toEqual([1, 2, 3]);
-                expect(Array.from(x.entries())).toEqual([
-                    [1, "1"],
-                    [2, "2"],
-                    [3, "3"]
-                ]);
-                x.forEach((value, key) => expect(value).toBe(key.toString()));
+            });
+            test("has", () => {
+                expect(x.has(1)).toBe(true);
+            });
+            test("set", () => {
+                expect(Array.from(x.set(4, "4").entries())).toEqual([[1, "1"], [2, "2"], [3, "3"], [4, "4"]]);
+            });
+            test("iterator", () => {
                 for (const [k, v] of x) {
                     expect(k.toString()).toBe(v);
                 }
-                x.clear();
-                expect(Array.from(x.entries())).toEqual([]);
             });
-            test("[Symbol​.iterator]()", () => {
-                expect(Array.from(x[Symbol​.iterator]())).toEqual([[1, "1"], [2, "2"], [3, "3"]]);
+            test("delete", () => {
+                x.delete(3);
+                expect(Array.from(x.entries())).toEqual([[1, "1"], [2, "2"]]);
+            });
+            test("undoable", () => {
+                x.delete(3);
+                expect(Array.from(x.entries())).toEqual([[1, "1"], [2, "2"]]);
+                ud.undo();
+                expect(Array.from(x.entries())).toEqual([[1, "1"], [2, "2"], [3, "3"]]);
             });
         });
 
@@ -191,21 +180,6 @@ describe("immutable", () => {
             });
         });
 
-        test("Array", () => {
-            const x = [1, 2, 3];
-            const xClone = immutable.array(x);
-            expect(x).not.toBe(xClone);
-            expect(x).toEqual(xClone);
-        });
-
-        test("Object", () => {
-            const x = { a: 1, b: [2] };
-            const xClone = immutable.object(x);
-            expect(x).not.toBe(xClone);
-            expect(x).toEqual(xClone);
-            expect(x.b).toBe(xClone.b);
-        });
-
         test("CustomDate", () => {
             const x = new CustomDate("December 17, 1995 03:24:00");
             expect(x.getDate()).toBe(17);
@@ -217,40 +191,5 @@ describe("immutable", () => {
             );
             expect(x.valueOf()).toBe(819167040000);
         });
-    });
-
-    describe("clone collections", () => {
-        type Collection<K, V> = Set<K> | Map<K, V>;
-        function collection<K, V>(
-            title: string,
-            ctor: new (...args: any[]) => Collection<K, V>,
-            clone: (arg: Collection<K, V>) => Collection<K, V>,
-            args: any
-        ) {
-            test(title, () => {
-                const collOriginal = new ctor(args);
-                const collCloned = clone(collOriginal);
-                expect(collCloned.constructor).toBe(ctor);
-                expect(collOriginal).not.toBe(collCloned);
-                expect(collOriginal.size).toBe(collCloned.size);
-                console.log(collCloned.entries());
-
-                expect(collOriginal.keys()).toEqual(collCloned.keys());
-                expect(collOriginal.values()).toEqual(collCloned.values());
-                expect(collOriginal.entries()).toEqual(collCloned.entries());
-            });
-        }
-        collection("ES6 Set", Set, immutable.set, [1, 2, 3]);
-        collection("custom Set", CustomSet, immutable.set, [1, 2, 3]);
-        collection("ES6 Map", Map, immutable.map, [
-            [1, "1"],
-            [2, "2"],
-            [3, "3"]
-        ]);
-        collection("custom Map", CustomMap, immutable.map, [
-            [1, "1"],
-            [2, "2"],
-            [3, "3"]
-        ]);
     });
 });

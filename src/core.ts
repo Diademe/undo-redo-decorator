@@ -1,26 +1,42 @@
-
 import { SuperArray, Index } from "./type";
 
-export function __initialization__(proxy: any, masterIndex: MasterIndex) {
-    if (proxy.__proxy__) {
-        if (proxy.__master__ !== masterIndex) {
-            proxy.__master__ = masterIndex;
-            proxy.__init__();
-            Object.keys(proxy).forEach(member => {
-                __initialization__(proxy[member], masterIndex);
-            });
-            Object.keys(proxy.constructor).forEach(member => {
-                __initialization__(proxy.constructor[member], masterIndex);
-            });
-            if (
-                [Array, Map, Set].some(
-                    collection => proxy instanceof collection
-                )
-            ) {
-                [...proxy.entries()].forEach(([_, val]) =>
-                    __initialization__(val, masterIndex)
-                );
+export function __initialization__(proxyWarper: any, masterIndex: MasterIndex) {
+    if (!proxyWarper) {
+        return;
+    }
+    const proxyInternal = proxyWarper.__proxyInternal__;
+    if (
+        proxyInternal &&
+        (!proxyInternal.inited || proxyInternal.master !== masterIndex)
+    ) {
+        proxyInternal.master = masterIndex;
+        proxyInternal.init();
+        Object.keys(proxyWarper).forEach(member => {
+            __initialization__(proxyWarper[member], masterIndex);
+        });
+        // non enumerable member specified in arg of Undoable
+        (proxyInternal.constructor.nonEnumerableWatch as string[]).forEach(
+            (member: string) => {
+                __initialization__(proxyWarper[member], masterIndex);
             }
+        );
+        // static member
+        if (proxyWarper.constructor) {
+            Object.keys(proxyWarper.constructor).forEach(member => {
+                __initialization__(
+                    proxyWarper.constructor[member],
+                    masterIndex
+                );
+            });
+        }
+        if (
+            [Array, Map, Set].some(
+                collection => proxyWarper instanceof collection
+            )
+        ) {
+            [...proxyWarper.entries()].forEach(([_, val]) =>
+                __initialization__(val, masterIndex)
+            );
         }
     }
 }
@@ -212,7 +228,3 @@ export class MasterIndex {
         return this.findIndex(slaveIndexHistory);
     }
 }
-
-
-
-
