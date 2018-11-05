@@ -101,17 +101,6 @@ export function Undoable(
 
         setForceWatch(anonymousClass, forceWatch);
         proxyInternalClass.nonEnumerableWatch = getForceWatch(anonymousClass);
-        // hide internal property TODO doesn't work (instance descriptor doesn't inherit from class)
-        for (const ownProperty of Object.keys(anonymousClass.prototype)) {
-            const descriptor = Object.getOwnPropertyDescriptor(
-                anonymousClass.prototype,
-                ownProperty
-            ) || { writable: true };
-            Object.defineProperty(anonymousClass.prototype, ownProperty, {
-                ...descriptor,
-                enumerable: false
-            });
-        }
         const descriptor = Object.getOwnPropertyDescriptor(
             anonymousClass,
             "__proxyInternal__"
