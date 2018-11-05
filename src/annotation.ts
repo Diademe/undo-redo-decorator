@@ -79,6 +79,8 @@ export function Undoable(
         const anonymousClass = class ProxyWarper extends ctor {
             // tslint:disable-next-line:variable-name
             __proxyInternal__: any;
+            // tslint:disable-next-line:variable-name
+            static __proxyInternal__: any;
 
             constructor(...args: any[]) {
                 super(...args);
@@ -110,7 +112,18 @@ export function Undoable(
                 enumerable: false
             });
         }
-        return anonymousClass;
+        const descriptor = Object.getOwnPropertyDescriptor(
+            anonymousClass,
+            "__proxyInternal__"
+        ) || { writable: true };
+        const proxyInternalInstance = new (proxyInternalClass as any)();
+        proxyInternalInstance.target = anonymousClass;
+        Object.defineProperty(anonymousClass, "__proxyInternal__", {
+            ...descriptor,
+            enumerable: false,
+            value: proxyInternalInstance
+        });
+        return new Proxy(anonymousClass, proxyHandler(anonymousClass.__proxyInternal__)) as any;
     }
 }
 
