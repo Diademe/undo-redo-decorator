@@ -87,7 +87,6 @@ export function Undoable(
                 enumerable: false
             });
         }
-
         return anonymousClass;
     }
 }

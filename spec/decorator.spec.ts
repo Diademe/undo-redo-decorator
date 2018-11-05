@@ -11,9 +11,7 @@ describe("hesitance", () => {
         const res = is_constructor(target);
         db.add(res ? target : target.constructor);
     }
-    function saveClass<T extends Object>(
-        target: T
-    ) {
+    function saveClass<T extends Object>(target: T) {
         db.add(target);
     }
 
