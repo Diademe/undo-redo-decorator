@@ -6,7 +6,7 @@ import { getAllPropertyNames } from "./utils";
 
 /**
  * class decorator that replace the class and return a proxy around it
- * @param ctor the constructor of the decorated class
+ * @param forceWatch non enumerable member to watch
  */
 export function Undoable(
     forceWatch: Key[] = []
