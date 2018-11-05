@@ -4,6 +4,24 @@ import { clone } from "./clone";
 import { Constructor, Key } from "./type";
 import { getAllPropertyNames } from "./utils";
 
+// save map (class -> non enumerable) that we need to watch
+const forceWatchMap = new Map<any, Key[]>();
+function setForceWatch(target: any, forceWatch: Key[]) {
+    let metaData = forceWatchMap.get(target);
+    if (metaData === void 0) {
+        metaData = [];
+        forceWatchMap.set(target, metaData);
+    }
+    metaData.push(...forceWatch);
+}
+
+function getForceWatch(target: any): Key[] {
+    const metaData: Key[] = []
+    do {
+        metaData.push(...(forceWatchMap.get(target) || []))
+    } while (target = Object.getPrototypeOf(target))
+    return metaData;
+}
 /**
  * class decorator that replace the class and return a proxy around it
  * @param forceWatch non enumerable member to watch
@@ -11,11 +29,11 @@ import { getAllPropertyNames } from "./utils";
 export function Undoable(
     forceWatch: Key[] = []
 ) {
-    function proxyInternal<T extends Constructor<any>, K extends keyof T> (ctor: T, target: any) {
-        return class ProxyInternal {
+    function proxyInternal<T extends Constructor<any>, K extends keyof T> (ctor: T) {
+        const proxyInternal =  class ProxyInternal {
             static originalConstructor = ctor;
             // watch non enumerable property of an object
-            static nonEnumerableWatch = forceWatch;
+            static nonEnumerableWatch: Key[];
             history: Map<K, History<T>>;
             master: MasterIndex;
             inited = false;
@@ -23,7 +41,6 @@ export function Undoable(
 
             constructor() {
                 this.history = new Map<K, History<T>>();
-                this.target = target;
             }
 
             init() {
@@ -54,9 +71,11 @@ export function Undoable(
                 }
             }
         }
+        return proxyInternal;
     }
-    return function aux<T extends Constructor<any>, K extends keyof T>(ctor: T) {
 
+    return function aux<T extends Constructor<any>>(ctor: T) {
+        const proxyInternalClass = proxyInternal(ctor);
         const anonymousClass = class ProxyWarper extends ctor {
             // tslint:disable-next-line:variable-name
             __proxyInternal__: any;
@@ -67,15 +86,19 @@ export function Undoable(
                     this,
                     "__proxyInternal__"
                 ) || { writable: true };
-                this.__proxyInternal__ = new (proxyInternal(ctor, this) as any)()
+                const proxyInternalInstance = new (proxyInternalClass as any)();
+                proxyInternalInstance.target = this;
                 Object.defineProperty(this, "__proxyInternal__", {
                     ...descriptor,
-                    enumerable: false
+                    enumerable: false,
+                    value: proxyInternalInstance
                 });
                 return new Proxy(this, proxyHandler(this.__proxyInternal__)) as any;
             }
         };
 
+        setForceWatch(anonymousClass, forceWatch);
+        proxyInternalClass.nonEnumerableWatch = getForceWatch(anonymousClass);
         // hide internal property TODO doesn't work (instance descriptor doesn't inherit from class)
         for (const ownProperty of Object.keys(anonymousClass.prototype)) {
             const descriptor = Object.getOwnPropertyDescriptor(
