@@ -2,7 +2,7 @@ import { Map } from "../src/collection/map";
 import { Set } from "../src/collection/set";
 import { Undoable, UndoRedo } from "../src";
 
-@Undoable(["_data"])
+@Undoable()
 class CustomMap<K, V> extends Map<K, V> {
     constructor(args?: any[]) {
         super(args);
@@ -14,7 +14,7 @@ class CustomMap<K, V> extends Map<K, V> {
     }
 }
 
-@Undoable(["_data"])
+@Undoable()
 class CustomSet<K> extends Set<K> {
     constructor(args?: any[]) {
         super();

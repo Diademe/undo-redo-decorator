@@ -41,4 +41,19 @@ describe("hesitance", () => {
         expect(db.has((foo as any).__proxyInternal__.constructor.originalConstructor)).toBe(true);
         expect(db.has(Foo)).toBe(true);
     });
+
+    test("nonEnumerable", () => {
+        @Undoable(["A"])
+        class A {}
+        @Undoable(["B"])
+        class B extends A {}
+        @Undoable(["C"])
+        class C extends B {}
+        @Undoable(["D"])
+        class D extends A {}
+        expect(((new A()) as any).__proxyInternal__.constructor.nonEnumerableWatch).toEqual(["A"]);
+        expect(((new B()) as any).__proxyInternal__.constructor.nonEnumerableWatch).toEqual(["B", "A"]);
+        expect(((new C()) as any).__proxyInternal__.constructor.nonEnumerableWatch).toEqual(["C", "B", "A"]);
+        expect(((new D()) as any).__proxyInternal__.constructor.nonEnumerableWatch).toEqual(["D", "A"]);
+    });
 });
