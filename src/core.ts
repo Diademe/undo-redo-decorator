@@ -16,7 +16,8 @@ export function __initialization__(proxyWarper: any, masterIndex: MasterIndex) {
             if (!descriptor.enumerable
                 || descriptor.writable === false
                 || typeof descriptor.value === "function"
-                || prop === "constructor") {
+                || prop === "constructor"
+                || prop === "prototype") {
                 continue;
             }
             __initialization__(descriptor.value, masterIndex);
