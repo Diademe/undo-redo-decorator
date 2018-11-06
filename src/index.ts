@@ -2,9 +2,6 @@ import { MasterIndex, __initialization__, History } from "./core";
 
 export { Undoable, cloneClass, cloneFunc } from "./annotation";
 export { immutable } from "./immutable";
-/**
- * todo improve sort and co
- */
 
 export class UndoRedo<T extends Object> {
     private index: MasterIndex;

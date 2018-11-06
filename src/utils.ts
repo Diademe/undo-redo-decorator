@@ -19,7 +19,7 @@ export function getAllPropertyNames<T>(obj: T) {
             );
             if (
                 propertyDescriptor.writable &&
-                props.findIndex(([prop2, _]) => prop2 === prop) === -1
+                props.findIndex(([prop2, _]) => { return prop2 === prop; }) === -1
             ) {
                 props.push([prop, propertyDescriptor]);
             }
