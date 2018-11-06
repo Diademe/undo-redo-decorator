@@ -1,7 +1,6 @@
 import { MasterIndex, __initialization__, History } from "./core";
 
 export { Undoable } from "./annotation";
-export { immutable } from "./immutable";
 
 export class UndoRedo<T extends Object> {
     private index: MasterIndex;
