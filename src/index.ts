@@ -55,10 +55,6 @@ export class UndoRedo<T extends Object> {
         return this.index.redoPossible();
     }
 
-    public get(): T {
-        return this.history.get();
-    }
-
     public maxRedoPossible() {
         return this.index.maxRedoPossible();
     }
