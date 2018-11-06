@@ -1,5 +1,4 @@
 export type Key = string | number | symbol;
-export type GenericIdentityFunc<T extends Object> = (arg: T) => T;
 export type Constructor<T> = new (...args: any[]) => T;
 export class Index {
     constructor(public indexVersion: number, public redoVersion: number) {}

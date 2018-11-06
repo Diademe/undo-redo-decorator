@@ -1,6 +1,5 @@
 import { proxyHandler } from "./handler";
 import { MasterIndex, History } from "./core";
-import { clone } from "./clone";
 import { Constructor, Key } from "./type";
 import { getAllPropertyNames } from "./utils";
 
@@ -135,22 +134,4 @@ export function Undoable(
         });
         return new Proxy(anonymousClass, proxyHandler(anonymousClass.__proxyInternal__, true)) as any;
     }
-}
-
-export function cloneClass<T extends Object, K extends keyof T>(
-    target: T,
-    keyName: K,
-    _: TypedPropertyDescriptor<() => T>
-): void {
-    if (Reflect.get(target, "__isProxy__")) {
-        throw Error("try to set a clone on an un-managed class");
-    }
-    clone.setClass(target, keyName);
-}
-
-export function cloneFunc<T extends Object>(
-    ctor: new (...args: any[]) => T,
-    func: (arg: T) => T
-): void {
-    clone.setFunction(ctor, func);
 }

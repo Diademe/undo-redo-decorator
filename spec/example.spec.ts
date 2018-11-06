@@ -1,4 +1,4 @@
-import { Undoable, UndoRedo, cloneClass } from "../src";
+import { Undoable, UndoRedo } from "../src";
 
 @Undoable()
 class Fifo<T> extends Array<T> {
@@ -39,10 +39,6 @@ class Pair<T> {
         if (a.first === b.first && a.second < b.second) return -1;
         if (a.first === b.first && a.second === b.second) return 0;
         return 1;
-    }
-    @cloneClass
-    clone() {
-        return new Pair(this.a, this.b);
     }
 }
 
