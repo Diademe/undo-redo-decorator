@@ -22,23 +22,29 @@ describe("static", () => {
         @Undoable()
         class A {
             static st = 1;
+            static sta = "A";
         }
 
         @Undoable()
         class B extends A {
             static st = 1;
+            static stb = "B";
         }
         const ud = new UndoRedo();
         ud.multiAdd([A, B])
 
-
+        expect((A as any).stb).toBeUndefined();
+        expect(B.sta).toBeDefined();
         A.st = 2;
         expect(A.st).toBe(2);
+        expect(B.st).toBe(1);
         expect(ud.undoPossible()).toBe(true);
         ud.undo();
+        expect(ud.redoPossible()).toBe(true);
         expect(A.st).toBe(1);
 
         B.st = 3;
+        expect(ud.redoPossible()).toBe(false);
         expect(A.st).toBe(1);
         expect(B.st).toBe(3);
         ud.undo();
