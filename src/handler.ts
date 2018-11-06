@@ -129,7 +129,8 @@ export function proxyHandler<T extends Object, K extends keyof T>(proxyInternal:
         ownKeys(_: T) {
             let res = Reflect.ownKeys(proxyInternal.target)
             if (isClass) {
-                res = res.concat(Array.from(Reflect.ownKeys(Object.getPrototypeOf(proxyInternal.target))));
+                const parentOwnKey = Array.from(Reflect.ownKeys(Object.getPrototypeOf(proxyInternal.target)));
+                res = res.concat(parentOwnKey.filter((elt) => { return res.indexOf(elt) === -1; }));
             }
             return res;
         },
