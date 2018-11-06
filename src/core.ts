@@ -1,4 +1,5 @@
 import { SuperArray, Index } from "./type";
+import { getAllPropertyNames } from "./utils";
 
 export function __initialization__(proxyWarper: any, masterIndex: MasterIndex) {
     if (!proxyWarper) {
@@ -11,9 +12,15 @@ export function __initialization__(proxyWarper: any, masterIndex: MasterIndex) {
     ) {
         proxyInternal.master = masterIndex;
         proxyInternal.init();
-        Object.keys(proxyWarper).forEach(member => {
-            __initialization__(proxyWarper[member], masterIndex);
-        });
+        for (const [prop, descriptor] of getAllPropertyNames(proxyWarper)) {
+            if (!descriptor.enumerable
+                || descriptor.writable === false
+                || typeof descriptor.value === "function"
+                || prop === "constructor") {
+                continue;
+            }
+            __initialization__(descriptor.value, masterIndex);
+        }
         // non enumerable member specified in arg of Undoable
         (proxyInternal.constructor.nonEnumerableWatch as string[]).forEach(
             (member: string) => {
