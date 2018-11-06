@@ -3,7 +3,7 @@ import { getInheritedPropertyDescriptor } from "./utils";
 
 const deleted = {};
 
-export function proxyHandler<T extends Object, K extends keyof T>(proxyInternal: any) {
+export function proxyHandler<T extends Object, K extends keyof T>(proxyInternal: any, isClass: boolean) {
     return {
         get(target: T, propKey: K, receiver: any) {
             const historyMap = proxyInternal.history;
@@ -60,7 +60,7 @@ export function proxyHandler<T extends Object, K extends keyof T>(proxyInternal:
         },
         set(target: T, propKey: K, value: any, receiver: any) {
             if (!proxyInternal.inited) {
-                return Reflect.set(target, propKey, value);
+                return Reflect.set(target, propKey, value, receiver);
             }
             // we should not save setter getter otherwise the logic inside them will be bypassed
             if ((getInheritedPropertyDescriptor(target, propKey) || {}).set) {
@@ -125,6 +125,20 @@ export function proxyHandler<T extends Object, K extends keyof T>(proxyInternal:
                 history.get(propKey).set(deleted as any);
             }
             return Reflect.deleteProperty(target, propKey)
+        },
+        ownKeys(_: T) {
+            let res = Reflect.ownKeys(proxyInternal.target)
+            if (isClass) {
+                res = res.concat(Array.from(Reflect.ownKeys(Object.getPrototypeOf(proxyInternal.target))));
+            }
+            return res;
+        },
+        getOwnPropertyDescriptor(target: T, propKey: K) {
+            const res = Reflect.getOwnPropertyDescriptor(proxyInternal.target, propKey)
+            if (res === undefined && isClass) {
+                return Reflect.getOwnPropertyDescriptor(Object.getPrototypeOf(proxyInternal.target), propKey);
+            }
+            return res;
         }
     } as ProxyHandler<T>;
 }

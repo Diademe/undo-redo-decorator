@@ -27,15 +27,6 @@ export function __initialization__(proxyWarper: any, masterIndex: MasterIndex) {
                 __initialization__(proxyWarper[member], masterIndex);
             }
         );
-        // static member
-        if (proxyWarper.constructor) {
-            Object.keys(proxyWarper.constructor).forEach(member => {
-                __initialization__(
-                    proxyWarper.constructor[member],
-                    masterIndex
-                );
-            });
-        }
         if (
             [Array, Map, Set].some(
                 collection => proxyWarper instanceof collection

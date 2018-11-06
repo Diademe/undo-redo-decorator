@@ -30,7 +30,7 @@ export function Undoable(
     forceWatch: Key[] = []
 ) {
     function proxyInternal<T extends Constructor<any>, K extends keyof T> (ctor: T) {
-        const proxyInternal =  class ProxyInternal {
+        const proxyInternalClass =  class ProxyInternal {
             static originalConstructor = ctor;
             // watch non enumerable property of an object
             static nonEnumerableWatch: Key[];
@@ -71,11 +71,21 @@ export function Undoable(
                 }
             }
         }
-        return proxyInternal;
+        const descriptor = Object.getOwnPropertyDescriptor(
+            proxyInternalClass,
+            "__proxyInternal__"
+        ) || { writable: true };
+        Object.defineProperty(proxyInternalClass, "name", {
+            ...descriptor,
+            enumerable: false,
+            value: `internal of ${ctor.name}`
+        });
+        return proxyInternalClass;
     }
 
     return function aux<T extends Constructor<any>>(ctor: T) {
         const proxyInternalClass = proxyInternal(ctor);
+
         const anonymousClass = class ProxyWarper extends ctor {
             // tslint:disable-next-line:variable-name
             __proxyInternal__: any;
@@ -84,23 +94,29 @@ export function Undoable(
 
             constructor(...args: any[]) {
                 super(...args);
-                const descriptor = Object.getOwnPropertyDescriptor(
+                let descriptor = Object.getOwnPropertyDescriptor(
                     this,
                     "__proxyInternal__"
                 ) || { writable: true };
                 const proxyInternalInstance = new (proxyInternalClass as any)();
                 proxyInternalInstance.target = this;
+                descriptor = Object.getOwnPropertyDescriptor(
+                    this,
+                    "__proxyInternal__"
+                ) || { writable: true };
                 Object.defineProperty(this, "__proxyInternal__", {
                     ...descriptor,
                     enumerable: false,
                     value: proxyInternalInstance
                 });
-                return new Proxy(this, proxyHandler(this.__proxyInternal__)) as any;
+                return new Proxy(this, proxyHandler(this.__proxyInternal__, false)) as any;
             }
         };
 
         setForceWatch(anonymousClass, forceWatch);
         proxyInternalClass.nonEnumerableWatch = getForceWatch(anonymousClass);
+
+        // static
         const descriptor = Object.getOwnPropertyDescriptor(
             anonymousClass,
             "__proxyInternal__"
@@ -112,7 +128,12 @@ export function Undoable(
             enumerable: false,
             value: proxyInternalInstance
         });
-        return new Proxy(anonymousClass, proxyHandler(anonymousClass.__proxyInternal__)) as any;
+        Object.defineProperty(anonymousClass, "name", {
+            ...descriptor,
+            enumerable: false,
+            value: `Warper of ${ctor.name}`
+        });
+        return new Proxy(anonymousClass, proxyHandler(anonymousClass.__proxyInternal__, true)) as any;
     }
 }
 
