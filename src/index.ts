@@ -5,18 +5,31 @@ export { immutable } from "./immutable";
 
 export class UndoRedo<T extends Object> {
     private index: MasterIndex;
-    private history: History<T>;
-    constructor(private watchable: T, undoRedo?: UndoRedo<T>) {
-        this.index =
-            undoRedo && undoRedo instanceof UndoRedo
-                ? (undoRedo as any).index
-                : new MasterIndex();
-        this.history =
-            undoRedo && undoRedo instanceof UndoRedo
-                ? (undoRedo as any).history
-                : new History<T>(this.index, this.watchable);
-        __initialization__(this.watchable, this.index);
-        this.history.set(this.watchable);
+    constructor(private watchable?: T) {
+        this.index = new MasterIndex();
+        if (watchable) {
+            this.internalAdd(watchable);
+            this.index.save();
+        }
+    }
+    private internalAdd(watchable?: T) {
+        if (watchable && (watchable as any).__proxyInternal__) {
+            __initialization__(watchable, this.index);
+        }
+        else {
+            throw Error(`${watchable} is not decorated with @Undoable`);
+        }
+    }
+
+    add(watchable?: T) {
+        this.internalAdd(watchable);
+        this.index.save();
+    }
+
+    multiAdd(watchables: T[]) {
+        for (const watchable of watchables) {
+            this.internalAdd(watchable)
+        }
         this.index.save();
     }
     /**
