@@ -1,4 +1,4 @@
-import { MasterIndex, __initialization__, History } from "./core";
+import { MasterIndex, __initialization__ } from "./core";
 
 export { Undoable } from "./annotation";
 
