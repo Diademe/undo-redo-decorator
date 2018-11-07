@@ -115,19 +115,13 @@ export function Undoable(
         proxyInternalClass.nonEnumerableWatch = getForceWatch(anonymousClass);
 
         // static
-        const descriptor = Object.getOwnPropertyDescriptor(
-            anonymousClass,
-            "__proxyInternal__"
-        ) || { writable: true };
         const proxyInternalInstance = new (proxyInternalClass as any)();
         proxyInternalInstance.target = anonymousClass;
         Object.defineProperty(anonymousClass, "__proxyInternal__", {
-            ...descriptor,
             enumerable: false,
             value: proxyInternalInstance
         });
         Object.defineProperty(anonymousClass, "name", {
-            ...descriptor,
             enumerable: false,
             value: `Warper of ${ctor.name}`
         });
