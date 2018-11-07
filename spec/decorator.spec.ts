@@ -38,7 +38,7 @@ describe("hesitance", () => {
     });
 
     test("static", () => {
-        expect(db.has((foo as any).__proxyInternal__.constructor.originalConstructor)).toBe(true);
+        expect(db.has((foo as any).constructor.__originalConstructor__)).toBe(true);
         expect(db.has(Foo)).toBe(true);
     });
 

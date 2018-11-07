@@ -30,7 +30,6 @@ export function Undoable(
 ) {
     function proxyInternal<T extends Constructor<any>, K extends keyof T> (ctor: T) {
         const proxyInternalClass =  class ProxyInternal {
-            static originalConstructor = ctor;
             // watch non enumerable property of an object
             static nonEnumerableWatch: Key[];
             history: Map<K, History<T>>;
@@ -131,6 +130,10 @@ export function Undoable(
             ...descriptor,
             enumerable: false,
             value: `Warper of ${ctor.name}`
+        });
+        Object.defineProperty(anonymousClass, "__originalConstructor__", {
+            enumerable: false,
+            value: ctor
         });
         return new Proxy(anonymousClass, proxyHandler(anonymousClass.__proxyInternal__, true)) as any;
     }
