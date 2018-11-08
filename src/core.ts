@@ -130,7 +130,7 @@ export class MasterIndex {
             index !== undefined
                 ? index
                 : Math.max(this.getCurrentIndex() - 1, 0);
-        if (index >= this.getCurrentIndex() || index < 0) {
+        if (index > this.getCurrentIndex() || index < 0) {
             throw Error(
                 "undo(i): i should be in [0, getCurrentIndex()] but i=" +
                     index +
