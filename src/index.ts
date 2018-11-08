@@ -2,30 +2,30 @@ import { MasterIndex, __initialization__ } from "./core";
 
 export { Undoable } from "./annotation";
 
-export class UndoRedo<T extends Object> {
+export class UndoRedo {
     private index: MasterIndex;
-    constructor(private watchable?: T) {
+    constructor(private watchable?: any) {
         this.index = new MasterIndex();
         if (watchable) {
             this.internalAdd(watchable);
             this.index.save();
         }
     }
-    private internalAdd(watchable?: T) {
+    private internalAdd(watchable?: any) {
         if (watchable && (watchable as any).__proxyInternal__) {
             __initialization__(watchable, this.index);
         }
         else {
-            throw Error(`${watchable} is not decorated with @Undoable`);
+            throw Error(`${watchable} is not decorated with @Undoable()`);
         }
     }
 
-    add(watchable?: T) {
+    add(watchable?: any) {
         this.internalAdd(watchable);
         this.index.save();
     }
 
-    multiAdd(watchables: T[]) {
+    multiAdd(watchables: any[]) {
         for (const watchable of watchables) {
             this.internalAdd(watchable)
         }
