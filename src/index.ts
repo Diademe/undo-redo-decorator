@@ -1,6 +1,8 @@
 import { MasterIndex, __initialization__ } from "./core";
 
 export { Undoable } from "./annotation";
+export { Map } from "./collection/map";
+export { Set } from "./collection/set";
 
 export class UndoRedo {
     private index: MasterIndex;
