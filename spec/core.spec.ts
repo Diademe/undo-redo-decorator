@@ -100,7 +100,6 @@ describe("core", () => {
                 expect(() => m.undo(1)).not.toThrow();
                 expect(() => m.undo(2)).toThrow();
                 expect(() => m.undo()).not.toThrow();
-                expect(() => m.undo()).toThrow();
             });
 
             test("invalid redo parameter", () => {
@@ -272,6 +271,7 @@ describe("core", () => {
         let child: Child;
         let getSet: GetterSetter;
         let ud: UndoRedo;
+
         beforeEach(() => {
             ud = new UndoRedo();
             child = new Child();
@@ -280,7 +280,7 @@ describe("core", () => {
         });
 
         test("get set", () => {
-            expect(getSet.SGMember).toBeUndefined();
+            expect(getSet.SGMember).toBeNaN();
             getSet.SGMember = 1;
             expect(getSet.SGMember).toBe(2);
             ud.undo();
