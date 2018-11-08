@@ -1,6 +1,6 @@
 import { proxyHandler } from "./handler";
 import { MasterIndex, History } from "./core";
-import { Constructor, Key } from "./type";
+import { Class, Key } from "./type";
 import { getAllPropertyNames } from "./utils";
 
 // save map (class -> non enumerable) that we need to watch
@@ -28,7 +28,7 @@ function getForceWatch(target: any): Key[] {
 export function Undoable(
     forceWatch: Key[] = []
 ) {
-    function proxyInternal<T extends Constructor<any>, K extends keyof T> (ctor: T) {
+    function proxyInternal<T extends Class<any>, K extends keyof T> (ctor: T) {
         const proxyInternalClass =  class ProxyInternal {
             // watch non enumerable property of an object
             static nonEnumerableWatch: Key[];
@@ -81,10 +81,10 @@ export function Undoable(
         return proxyInternalClass;
     }
 
-    return function aux<T extends Constructor<any>>(ctor: T) {
+    return function aux<T extends Class<any>>(ctor: T) {
         const proxyInternalClass = proxyInternal(ctor);
-
-        const anonymousClass = class ProxyWarper extends ctor {
+        // bug of typescript : can not extends abstract class from parameters
+        const anonymousClass = class ProxyWarper extends (ctor as any) {
             // tslint:disable-next-line:variable-name
             __proxyInternal__: any;
             // tslint:disable-next-line:variable-name
