@@ -11,7 +11,7 @@ export function proxyHandler<T extends Object, K extends keyof T>(proxyInternal:
             let result: T[K];
             const descriptor = getInheritedPropertyDescriptor(target, propKey) || {};
             // we should not save setter getter otherwise the logic inside them will be bypassed
-            if (descriptor.set || descriptor.writable === false) {
+            if (descriptor.set || descriptor.get || descriptor.writable === false) {
                 return Reflect.get(target, propKey, receiver);
             }
             switch (propKey) {
