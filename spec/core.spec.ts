@@ -1,5 +1,6 @@
 import { MasterIndex } from "../src/core";
 import { Index, SuperArray } from "../src/type";
+import { UndoRedo, Undoable } from "../src";
 
 describe("core", () => {
     describe("Index", () => {
@@ -250,6 +251,47 @@ describe("core", () => {
             expect(h).toEqual([[new Index(1, 0), 0], [new Index(2, 4), 7]]);
             m.save();
             expect(m.getCurrentIndex()).toBe(2);
+        });
+    });
+
+    describe("getter setter", () => {
+        @Undoable()
+        class GetterSetter {
+            private _member: number;
+            set SGMember(val: number) {
+                this._member = val;
+            }
+            get SGMember() {
+                return this._member + 1;
+            }
+        }
+
+        @Undoable()
+        class Child extends GetterSetter { }
+
+        let child: Child;
+        let getSet: GetterSetter;
+        let ud: UndoRedo;
+        beforeEach(() => {
+            ud = new UndoRedo();
+            child = new Child();
+            getSet = new GetterSetter();
+            ud.multiAdd([child, getSet]);
+        });
+
+        test("get set", () => {
+            expect(getSet.SGMember).toBeUndefined();
+            getSet.SGMember = 1;
+            expect(getSet.SGMember).toBe(2);
+            ud.undo();
+            expect(() => getSet.SGMember).toThrow();
+        });
+
+        test("inherited get set", () => {
+            getSet.SGMember = 1;
+            expect(getSet.SGMember).toBe(2);
+            ud.undo();
+            expect(() => getSet.SGMember).toThrow();
         });
     });
 });

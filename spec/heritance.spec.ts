@@ -1,4 +1,4 @@
-import { Undoable } from "../src/index";
+import { Undoable, UndoRedo } from "../src/index";
 
 describe("hesitance", () => {
     @Undoable()
@@ -41,6 +41,31 @@ describe("hesitance", () => {
     beforeEach(() => {
         child = new Child();
         mother = new Mother();
+    });
+
+    test("Register", () => {
+        @Undoable()
+        class MotherRegister {
+            constructor(private ud: UndoRedo) { }
+            onInit() {
+                ud.add(this);
+            }
+            motherMember = 1;
+        }
+        @Undoable()
+        class ChildRegister extends MotherRegister {
+            constructor(arg: UndoRedo) {
+                super(arg);
+            }
+            childMember = 2;
+        }
+        const ud = new UndoRedo();
+        const child = new ChildRegister(ud);
+        child.onInit();
+        child.childMember = 3;
+        expect(child.childMember).toBe(3);
+        ud.undo();
+        expect(child.childMember).toBe(2);
     });
 
     test("instanceof", () => {
