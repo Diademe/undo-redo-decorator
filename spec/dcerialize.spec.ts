@@ -116,16 +116,20 @@ describe("Dcerialize", () => {
     });
 
     test("runtime typing", () => {
+        @Undoable()
         class Test0 {
             @deserializeAs(() => Boolean)
             public valueA = true;
         }
+        @Undoable()
         class Test1 {
             @deserializeAs(() => Boolean)
             public valueB = true;
         }
+        @Undoable()
         @inheritSerialization(() => Test1)
         class Test2 extends Test1 {}
+        @Undoable()
         class Test3 {
             @deserializeAs(() => Object)
             public m1: Test0;

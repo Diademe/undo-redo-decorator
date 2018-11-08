@@ -187,7 +187,7 @@ describe("immutable", () => {
             expect(x.getHours()).toBe(3);
             expect(x.toUTCString()).toBe("Sun, 17 Dec 1995 02:24:00 GMT");
             expect(x[Symbol.toPrimitive]("string")).toBe(
-                "Sun Dec 17 1995 03:24:00 GMT+0100 (Romance Standard Time)"
+                "Sun Dec 17 1995 03:24:00 GMT+0100 (Central European Standard Time)"
             );
             expect(x.valueOf()).toBe(819167040000);
         });
