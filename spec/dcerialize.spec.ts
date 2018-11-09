@@ -126,8 +126,8 @@ describe("Dcerialize", () => {
             @deserializeAs(() => Boolean)
             public valueB = true;
         }
-        @Undoable()
         @inheritSerialization(() => Test1)
+        @Undoable()
         class Test2 extends Test1 {}
         @Undoable()
         class Test3 {

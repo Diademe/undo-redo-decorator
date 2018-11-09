@@ -61,10 +61,10 @@ describe("immutable", () => {
     describe("collections", () => {
         describe("CustomSet", () => {
             let x: CustomSet<number>;
-            let ud: UndoRedo<CustomSet<number>>;
+            let ud: UndoRedo;
             beforeEach(() => {
                 x = new CustomSet([1, 2, 3]);
-                ud = new UndoRedo<CustomSet<number>>(x);
+                ud = new UndoRedo(x);
             });
             test("Set", () => {
                 x.add(4);
@@ -74,7 +74,7 @@ describe("immutable", () => {
 
         describe("CustomMap", () => {
             let x: CustomMap<number, string>;
-            let ud: UndoRedo<CustomMap<number, string>>;
+            let ud: UndoRedo;
 
             beforeEach(() => {
                 x = new CustomMap([[1, "1"], [2, "2"], [3, "3"]]);

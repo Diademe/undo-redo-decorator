@@ -58,25 +58,25 @@ describe("example", () => {
     test("stack", () => {
         const stack = new Fifo<number>();
         const undoRedo = new UndoRedo(stack);
-        expect(undoRedo.getCurrentIndex()).toBe(1);
+        expect(undoRedo.getCurrentIndex()).toBe(0);
         undoRedo.save();
         stack.push(1);
         stack.push(2);
         expect(stack.toArray()).toEqual([1, 2]);
-        expect(undoRedo.getCurrentIndex()).toBe(2);
+        expect(undoRedo.getCurrentIndex()).toBe(1);
         undoRedo.save();
-        expect(undoRedo.getCurrentIndex()).toBe(2);
+        expect(undoRedo.getCurrentIndex()).toBe(1);
         stack.push(2);
         stack.push(3);
         expect(stack.toArray()).toEqual([1, 2, 2, 3]);
         undoRedo.save();
-        expect(undoRedo.getCurrentIndex()).toBe(3);
+        expect(undoRedo.getCurrentIndex()).toBe(2);
     });
 
     test("stack of pair", () => {
         const stack = new Fifo<Pair<number>>();
         const undoRedo = new UndoRedo(stack);
-        expect(undoRedo.getCurrentIndex()).toBe(1);
+        expect(undoRedo.getCurrentIndex()).toBe(0);
         stack.push(new Pair(1, 1));
         stack.push(new Pair(2, 2));
         undoRedo.save();

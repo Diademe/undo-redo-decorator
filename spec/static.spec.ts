@@ -32,10 +32,13 @@ describe("static", () => {
         }
         const ud = new UndoRedo();
         ud.multiAdd([A, B])
+        expect(ud.undoPossible()).toBe(false);
+        expect(ud.getCurrentIndex()).toBe(0);
 
         expect((A as any).stb).toBeUndefined();
         expect(B.sta).toBeDefined();
         A.st = 2;
+        expect(ud.getCurrentIndex()).toBe(1);
         expect(A.st).toBe(2);
         expect(B.st).toBe(1);
         expect(ud.undoPossible()).toBe(true);
