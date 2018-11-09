@@ -6,13 +6,16 @@ export { Set } from "./collection/set";
 
 export class UndoRedo {
     private index: MasterIndex;
+    private inited = false;
     constructor(private watchable?: any) {
         this.index = new MasterIndex();
         if (watchable) {
             this.internalAdd(watchable);
             this.index.save();
+            this.inited = true;
         }
     }
+
     private internalAdd(watchable?: any) {
         if (watchable && (watchable as any).__proxyInternal__) {
             __initialization__(watchable, this.index);
@@ -25,6 +28,7 @@ export class UndoRedo {
     add(watchable?: any) {
         this.internalAdd(watchable);
         this.index.save();
+        this.inited = true;
     }
 
     multiAdd(watchables: any[]) {
@@ -32,12 +36,14 @@ export class UndoRedo {
             this.internalAdd(watchable)
         }
         this.index.save();
+        this.inited = true;
     }
     /**
      * save: the current state is saved
      * return true if there was something to save
      */
     public save(): boolean {
+        console.log("save:", this.getCurrentIndex());
         return this.index.save();
     }
 
@@ -46,7 +52,10 @@ export class UndoRedo {
      * @param index to which state do you want to go (default : last saved state)
      */
     public undo(index?: number) {
-        this.index.undo(index);
+        if (this.inited) {
+            this.index.undo(index ? index + 1 : index);
+            console.log("undo:", this.getCurrentIndex());
+        }
     }
 
     /**
@@ -54,19 +63,25 @@ export class UndoRedo {
      * @param index to which state do you want to go (default : last saved state)
      */
     public redo(index?: number): void {
-        this.index.redo(index);
+        if (this.inited) {
+            this.index.redo(index ? index + 1 : index);
+            console.log("redo:", this.getCurrentIndex());
+        }
     }
 
     public getCurrentIndex(): number {
-        return this.index.getCurrentIndex();
+        return this.inited ? this.index.getCurrentIndex() - 1 : undefined;
     }
 
     public undoPossible() {
-        return this.index.undoPossible();
+        if (this.inited) {
+            return this.index.getCurrentIndex() > 1;
+        }
+        return false;
     }
 
     public redoPossible() {
-        return this.index.redoPossible();
+        return this.inited ? this.index.redoPossible() : false;
     }
 
     public maxRedoPossible() {
