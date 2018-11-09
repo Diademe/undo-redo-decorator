@@ -26,6 +26,11 @@ export function proxyHandler<T extends Object, K extends keyof T>(proxyInternal:
                 case "__proxyInternal__":
                     result = Reflect.get(target, propKey, receiver);
                     break;
+                case "__originalConstructor__":
+                    do {
+                        result = Reflect.get(target, propKey, receiver);
+                    } while ((result as any).__originalConstructor__);
+                    break;
                 default:
                     if (!proxyInternal.inited) {
                         result = Reflect.get(target, propKey);
