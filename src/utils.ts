@@ -1,3 +1,5 @@
+import { Key } from "./type";
+
 // source https://stackoverflow.com/questions/40922531/how-to-check-if-a-javascript-function-is-a-constructor
 export function is_constructor(f: any) {
     try {
@@ -48,3 +50,6 @@ export function notEnumerable(target: any, propertyKey: string) {
         enumerable: false
     });
 }
+
+// associate class to function name to be called after creation
+export const initializationMap = new Map<any, Key>();

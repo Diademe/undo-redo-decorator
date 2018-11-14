@@ -1,7 +1,7 @@
 import { proxyHandler } from "./handler";
 import { MasterIndex, History } from "./core";
 import { Class, Key } from "./type";
-import { getAllPropertyNames } from "./utils";
+import { getAllPropertyNames, initializationMap } from "./utils";
 
 // save map (class -> non enumerable) that we need to watch
 const forceWatchMap = new Map<any, Key[]>();
@@ -21,6 +21,17 @@ function getForceWatch(target: any): Key[] {
     } while (target = Object.getPrototypeOf(target))
     return metaData;
 }
+
+/**
+ * function decorator. this function will be called after object creation
+ */
+export function UndoInit(target: any, propKey: Key) {
+    if (initializationMap.has(target.constructor)) {
+        console.warn(`init has already been applied to the class ${target.constructor.name}`);
+    }
+    initializationMap.set(target.constructor, propKey);
+}
+
 /**
  * class decorator that replace the class and return a proxy around it
  * @param forceWatch non enumerable member to watch
@@ -32,6 +43,7 @@ export function Undoable(
         const proxyInternalClass =  class ProxyInternal {
             // watch non enumerable property of an object
             static nonEnumerableWatch: Key[];
+            static initialization: Function[];
             history: Map<K, History<T>>;
             master: MasterIndex;
             inited = false;
@@ -109,6 +121,14 @@ export function Undoable(
 
         setForceWatch(anonymousClass, forceWatch);
         proxyInternalClass.nonEnumerableWatch = getForceWatch(anonymousClass);
+        let proto = ctor;
+        do {
+            if (initializationMap.has(proto)) {
+                const initMember = initializationMap.get(proto)
+                proxyInternalClass.initialization = Reflect.get(proto.prototype, initMember);
+                break;
+            }
+        } while (proto = Object.getPrototypeOf(proto));
 
         // static
         const proxyInternalInstance = new (proxyInternalClass as any)();
