@@ -54,7 +54,8 @@ export function proxyHandler<T extends Object, K extends keyof T>(proxyInternal:
                             }
                             break;
                         default:
-                            result = historyTarget.get() as T[K];
+                            // if historyTarget is undefined, the property doesn't exist on the target
+                            result = historyTarget ? historyTarget.get() : undefined;
                             break;
                     }
             }
