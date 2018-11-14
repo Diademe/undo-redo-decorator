@@ -1,5 +1,6 @@
 import { Undoable } from "../src/index";
 import { is_constructor } from "../src/utils";
+import { UndoInit } from "../src/annotation";
 
 describe("hesitance", () => {
     const db = new Set<any>();
@@ -55,5 +56,78 @@ describe("hesitance", () => {
         expect(((new B()) as any).__proxyInternal__.constructor.nonEnumerableWatch).toEqual(["B", "A"]);
         expect(((new C()) as any).__proxyInternal__.constructor.nonEnumerableWatch).toEqual(["C", "B", "A"]);
         expect(((new D()) as any).__proxyInternal__.constructor.nonEnumerableWatch).toEqual(["D", "A"]);
+    });
+
+    describe("factory and initialization", () => {
+        enum Value { default, constructor, initialization };
+        test("default", () => {
+            @Undoable()
+            class Test {
+                member = Value.default;
+                constructor(init = true) {
+                    if (init) {
+                        this.member = Value.constructor;
+                    }
+                }
+                init() {
+                    this.member = Value.initialization;
+                }
+            }
+            expect(new Test(false).member).toEqual(Value.default);
+        });
+
+        test("constructor", () => {
+            @Undoable()
+            class Test {
+                member = Value.default;
+                constructor(init = true) {
+                    if (init) {
+                        this.member = Value.constructor;
+                    }
+                }
+                init() {
+                    this.member = Value.initialization;
+                }
+            }
+            expect(new Test().member).toEqual(Value.constructor);
+        });
+
+        describe("initialization", () => {
+            test("simple", () => {
+                @Undoable()
+                class Test {
+                    member = Value.default;
+                    constructor(init = true) {
+                        if (init) {
+                            this.member = Value.constructor;
+                        }
+                    }
+                    @UndoInit
+                    init() {
+                        this.member = Value.initialization;
+                    }
+                }
+                expect(new Test().member).toEqual(Value.initialization);
+            });
+
+            test("inheritance", () => {
+                @Undoable()
+                class Mother {
+                    member = 1;
+                    @UndoInit
+                    initM() {
+                        this.member += 3;
+                    }
+                }
+                @Undoable()
+                class Child  extends Mother {
+                    @UndoInit
+                    initC() {
+                        this.member *= 2;
+                    }
+                }
+                expect(new Child().member).toEqual(8);
+            });
+        });
     });
 });

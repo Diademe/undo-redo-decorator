@@ -61,9 +61,6 @@ export function proxyHandler<T extends Object, K extends keyof T>(proxyInternal:
             }
             return result;
         },
-        getPrototypeOf(target: T) {
-            return target;
-        },
         set(target: T, propKey: K, value: any, receiver: any) {
             if (!proxyInternal.inited) {
                 return Reflect.set(target, propKey, value, receiver);
@@ -146,6 +143,22 @@ export function proxyHandler<T extends Object, K extends keyof T>(proxyInternal:
                 return Reflect.getOwnPropertyDescriptor(Object.getPrototypeOf(proxyInternal.target), propKey);
             }
             return res;
+        },
+        construct(target: T, argsArray: any, newTarget: any) {
+            if (isClass) {
+                const initMember: Function = (target as any).__proxyInternal__.constructor.initialization;
+                if (initMember === undefined) {
+                    const obj = Reflect.construct(target as any, [false], newTarget); // TODO decide what to give in parameters for constructor and init
+                    initMember.call(obj, ...argsArray);
+                    return obj;
+                }
+                else {
+                    return Reflect.construct(target as any, argsArray, newTarget);
+                }
+            }
+            else {
+                throw new Error(`TypeError: ${target} is not a constructor`)
+            }
         }
     } as ProxyHandler<T>;
 }
