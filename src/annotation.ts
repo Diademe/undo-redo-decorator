@@ -92,13 +92,9 @@ export function Undoable(
 
             constructor(...args: any[]) {
                 super(...args);
-                let descriptor = Object.getOwnPropertyDescriptor(
-                    this,
-                    "__proxyInternal__"
-                ) || { writable: true };
                 const proxyInternalInstance = new (proxyInternalClass as any)();
                 proxyInternalInstance.target = this;
-                descriptor = Object.getOwnPropertyDescriptor(
+                const descriptor = Object.getOwnPropertyDescriptor(
                     this,
                     "__proxyInternal__"
                 ) || { writable: true };
