@@ -61,6 +61,9 @@ export function proxyHandler<T extends Object, K extends keyof T>(proxyInternal:
             }
             return result;
         },
+        getPrototypeOf(target: T) {
+            return target;
+        },
         set(target: T, propKey: K, value: any, receiver: any) {
             if (!proxyInternal.inited) {
                 return Reflect.set(target, propKey, value, receiver);
