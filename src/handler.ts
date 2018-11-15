@@ -107,6 +107,9 @@ export function proxyHandler<T extends Object, K extends keyof T>(proxyInternal:
             );
         },
         has(target: T, propKey: K) {
+            if (!proxyInternal.inited) {
+                return Reflect.has(target, propKey);
+            }
             const history: Map<K, History<T[K]>> = proxyInternal.history;
             if (history.has(propKey)) {
                 try {
