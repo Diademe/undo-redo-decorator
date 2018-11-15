@@ -147,7 +147,7 @@ export function proxyHandler<T extends Object, K extends keyof T>(proxyInternal:
         construct(target: T, argsArray: any, newTarget: any) {
             if (isClass) {
                 const initMember: Function = (target as any).__proxyInternal__.constructor.initialization;
-                if (initMember === undefined) {
+                if (initMember !== undefined) {
                     const obj = Reflect.construct(target as any, [false], newTarget); // TODO decide what to give in parameters for constructor and init
                     initMember.call(obj, ...argsArray);
                     return obj;
