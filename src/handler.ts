@@ -99,13 +99,6 @@ export function proxyHandler<T extends Object, K extends keyof T>(proxyInternal:
             Reflect.set(target, propKey, value); // keep object up to date to allow iteration over it
             return result;
         },
-        apply(target: T, thisArg: any, argArray?: any) {
-            Reflect.apply(target as any, thisArg, argArray);
-            console.log(
-                "APPLY:" + target.constructor.name,
-                "(" + (argArray ? argArray.toString() : "[]") + ")"
-            );
-        },
         has(target: T, propKey: K) {
             if (!proxyInternal.inited) {
                 return Reflect.has(target, propKey);
