@@ -90,7 +90,7 @@ function wrapper <T extends Class<any>>(forceWatch: Key[], proxify: boolean) {
     return (ctor: T) => {
         const proxyInternalClass = proxyInternal(ctor);
         // bug of typescript : can not extends abstract class from parameters
-        const anonymousClass = class ProxyWarper extends (ctor as any) {
+        const anonymousClass = class ProxyWrapper extends (ctor as any) {
             // tslint:disable-next-line:variable-name
             __proxyInternal__: any;
             // tslint:disable-next-line:variable-name
@@ -142,7 +142,7 @@ function wrapper <T extends Class<any>>(forceWatch: Key[], proxify: boolean) {
         });
         Object.defineProperty(anonymousClass, "name", {
             enumerable: false,
-            value: `Warper of ${ctor.name}`
+            value: `Wrapper of ${ctor.name}`
         });
         Object.defineProperty(anonymousClass, "__originalConstructor__", {
             enumerable: false,

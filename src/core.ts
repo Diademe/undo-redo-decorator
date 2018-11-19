@@ -1,18 +1,18 @@
 import { SuperArray, Index } from "./type";
 import { getAllPropertyNames } from "./utils";
 
-export function __initialization__(proxyWarper: any, masterIndex: MasterIndex) {
-    if (!proxyWarper) {
+export function __initialization__(proxyWrapper: any, masterIndex: MasterIndex) {
+    if (!proxyWrapper) {
         return;
     }
-    const proxyInternal = proxyWarper.__proxyInternal__;
+    const proxyInternal = proxyWrapper.__proxyInternal__;
     if (
         proxyInternal &&
         (!proxyInternal.inited || proxyInternal.master !== masterIndex)
     ) {
         proxyInternal.master = masterIndex;
         proxyInternal.init();
-        for (const [prop, descriptor] of getAllPropertyNames(proxyWarper)) {
+        for (const [prop, descriptor] of getAllPropertyNames(proxyWrapper)) {
             if (!descriptor.enumerable
                 || descriptor.writable === false
                 || typeof descriptor.value === "function"
@@ -25,15 +25,15 @@ export function __initialization__(proxyWarper: any, masterIndex: MasterIndex) {
         // non enumerable member specified in arg of Undoable
         (proxyInternal.constructor.nonEnumerableWatch as string[]).forEach(
             (member: string) => {
-                __initialization__(proxyWarper[member], masterIndex);
+                __initialization__(proxyWrapper[member], masterIndex);
             }
         );
         if (
             [Array, Map, Set].some(
-                collection => proxyWarper instanceof collection
+                collection => proxyWrapper instanceof collection
             )
         ) {
-            [...proxyWarper.entries()].forEach(([_, val]) =>
+            [...proxyWrapper.entries()].forEach(([_, val]) =>
                 __initialization__(val, masterIndex)
             );
         }
