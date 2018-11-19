@@ -6,7 +6,7 @@ const deleted = {};
 export function proxyHandler<T extends Object, K extends keyof T>(isClass: boolean) {
     return {
         get(target: T, propKey: K, receiver: any) {
-            const historyMap = proxyInternal.history;
+            const historyMap = (target as any).__proxyInternal__.history;
             const historyTarget: History<T[K]> = historyMap.get(propKey);
             let result: T[K];
             const descriptor = getInheritedPropertyDescriptor(target, propKey) || {};
@@ -32,7 +32,7 @@ export function proxyHandler<T extends Object, K extends keyof T>(isClass: boole
                     } while ((result as any).__originalConstructor__);
                     break;
                 default:
-                    if (!proxyInternal.inited) {
+                    if (!(target as any).__proxyInternal__.inited) {
                         result = Reflect.get(target, propKey);
                         return typeof result === "function" ? result.bind(target) : result;
                     }
@@ -46,10 +46,10 @@ export function proxyHandler<T extends Object, K extends keyof T>(isClass: boole
                                 case "has":
                                 case "values":
                                 case "entries":
-                                    result = memberValue.bind(target);
+                                    result = Reflect.get(target, propKey);
                                     break;
                                 default:
-                                    result = memberValue.bind(receiver);
+                                    result = Reflect.get(target, propKey, receiver);
                                     break;
                             }
                             break;
@@ -65,7 +65,7 @@ export function proxyHandler<T extends Object, K extends keyof T>(isClass: boole
             return target;
         },
         set(target: T, propKey: K, value: any, receiver: any) {
-            if (!proxyInternal.inited) {
+            if (!(target as any).__proxyInternal__.inited) {
                 return Reflect.set(target, propKey, value, receiver);
             }
             // we should not save setter getter otherwise the logic inside them will be bypassed
@@ -73,7 +73,7 @@ export function proxyHandler<T extends Object, K extends keyof T>(isClass: boole
                 return Reflect.set(target, propKey, value, receiver);
             }
             if (value && (value as any).__proxyInternal__) {
-                __initialization__(value, proxyInternal.master);
+                __initialization__(value, (target as any).__proxyInternal__.master);
             }
 
             let result: boolean;
@@ -88,11 +88,11 @@ export function proxyHandler<T extends Object, K extends keyof T>(isClass: boole
                     result = true;
                     break
             }
-            const history: Map<K, History<T[K]>> = proxyInternal.history;
+            const history: Map<K, History<T[K]>> = (target as any).__proxyInternal__.history;
             if (!history.has(propKey)) {
                 history.set(propKey,
                     new History<any>(
-                        proxyInternal.master,
+                        (target as any).__proxyInternal__.master,
                     value
                 ));
             }
@@ -103,10 +103,10 @@ export function proxyHandler<T extends Object, K extends keyof T>(isClass: boole
             return result;
         },
         has(target: T, propKey: K) {
-            if (!proxyInternal.inited) {
+            if (!(target as any).__proxyInternal__.inited) {
                 return Reflect.has(target, propKey);
             }
-            const history: Map<K, History<T[K]>> = proxyInternal.history;
+            const history: Map<K, History<T[K]>> = (target as any).__proxyInternal__.history;
             if (history.has(propKey)) {
                 try {
                     const val = history.get(propKey).get();
@@ -122,24 +122,24 @@ export function proxyHandler<T extends Object, K extends keyof T>(isClass: boole
             return false;
         },
         deleteProperty(target: T, propKey: K) {
-            const history: Map<K, History<T[K]>> = proxyInternal.history;
+            const history: Map<K, History<T[K]>> = (target as any).__proxyInternal__.history;
             if (history.has(propKey)) {
                 history.get(propKey).set(deleted as any);
             }
             return Reflect.deleteProperty(target, propKey)
         },
-        ownKeys(_: T) {
-            let res = Reflect.ownKeys(proxyInternal.target)
+        ownKeys(target: T) {
+            let res = Reflect.ownKeys(target)
             if (isClass) {
-                const parentOwnKey = Array.from(Reflect.ownKeys(Object.getPrototypeOf(proxyInternal.target)));
+                const parentOwnKey = Array.from(Reflect.ownKeys(Object.getPrototypeOf(target)));
                 res = res.concat(parentOwnKey.filter((elt) => { return res.indexOf(elt) === -1; }));
             }
             return res;
         },
         getOwnPropertyDescriptor(target: T, propKey: K) {
-            const res = Reflect.getOwnPropertyDescriptor(proxyInternal.target, propKey)
+            const res = Reflect.getOwnPropertyDescriptor(target, propKey)
             if (res === undefined && isClass) {
-                return Reflect.getOwnPropertyDescriptor(Object.getPrototypeOf(proxyInternal.target), propKey);
+                return Reflect.getOwnPropertyDescriptor(Object.getPrototypeOf(target), propKey);
             }
             return res;
         },
