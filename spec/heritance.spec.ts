@@ -1,7 +1,7 @@
-import { Undoable, UndoRedo } from "../src/index";
+import { Undoable, UndoRedo, UndoableNoParent } from "../src/index";
 
 describe("hesitance", () => {
-    @Undoable()
+    @UndoableNoParent()
     class Mother {
         motherName: string;
         nonStatic: string;
@@ -44,7 +44,7 @@ describe("hesitance", () => {
     });
 
     test("Register", () => {
-        @Undoable()
+        @UndoableNoParent()
         class MotherRegister {
             constructor(private ud: UndoRedo) { }
             onInit() {
@@ -98,7 +98,7 @@ describe("hesitance with only child decorated by Undoable", () => {
             }
             motherMember = 1;
         }
-        @Undoable()
+        @UndoableNoParent()
         class ChildRegister extends MotherRegister {
             constructor(arg: UndoRedo) {
                 super(arg);
@@ -125,7 +125,7 @@ describe("hesitance with only child decorated by Undoable", () => {
         static staticOverridden = 1;
     }
 
-    @Undoable()
+    @UndoableNoParent()
     class Child extends Mother {
         childName: string;
         nonStatic: string;

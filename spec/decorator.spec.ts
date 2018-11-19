@@ -1,6 +1,5 @@
-import { Undoable } from "../src/index";
+import { Undoable, UndoInit, UndoableNoParent } from "../src/index";
 import { is_constructor } from "../src/utils";
-import { UndoInit } from "../src/annotation";
 
 describe("hesitance", () => {
     const db = new Set<any>();
@@ -17,7 +16,7 @@ describe("hesitance", () => {
     }
 
     @saveClass
-    @Undoable()
+    @UndoableNoParent()
     class Foo {
         constructor(public name: string) {}
 
@@ -44,7 +43,7 @@ describe("hesitance", () => {
     });
 
     test("nonEnumerable", () => {
-        @Undoable(["A"])
+        @UndoableNoParent(["A"])
         class A {}
         @Undoable(["B"])
         class B extends A {}

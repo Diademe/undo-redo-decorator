@@ -1,6 +1,6 @@
-import { Undoable, UndoRedo } from "../src";
+import { UndoRedo, UndoableNoParent } from "../src";
 
-@Undoable()
+@UndoableNoParent()
 class Fifo<T> extends Array<T> {
     constructor(args?: any[]) {
         super();
@@ -19,7 +19,7 @@ class Fifo<T> extends Array<T> {
     }
 }
 
-@Undoable()
+@UndoableNoParent()
 class Pair<T> {
     constructor(private a: T, private b: T) {}
     get first() {
@@ -42,7 +42,7 @@ class Pair<T> {
     }
 }
 
-@Undoable()
+@UndoableNoParent()
 class LinkedList<T> {
     constructor(public val: T, public next: LinkedList<T>) {}
     static end<T>(list: LinkedList<T>) {

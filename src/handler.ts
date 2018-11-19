@@ -3,7 +3,7 @@ import { getInheritedPropertyDescriptor } from "./utils";
 
 const deleted = {};
 
-export function proxyHandler<T extends Object, K extends keyof T>(proxyInternal: any, isClass: boolean) {
+export function proxyHandler<T extends Object, K extends keyof T>(isClass: boolean) {
     return {
         get(target: T, propKey: K, receiver: any) {
             const historyMap = proxyInternal.history;

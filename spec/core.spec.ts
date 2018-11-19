@@ -1,6 +1,6 @@
 import { MasterIndex } from "../src/core";
 import { Index, SuperArray } from "../src/type";
-import { UndoRedo, Undoable } from "../src";
+import { UndoRedo, Undoable, UndoableNoParent } from "../src";
 
 describe("core", () => {
     describe("Index", () => {
@@ -254,7 +254,7 @@ describe("core", () => {
     });
 
     describe("getter setter", () => {
-        @Undoable()
+        @UndoableNoParent()
         class GetterSetter {
             private _member: number;
             set SGMember(val: number) {

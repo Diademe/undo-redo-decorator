@@ -32,68 +32,62 @@ export function UndoInit(target: any, propKey: Key) {
     initializationMap.set(target.constructor, propKey);
 }
 
-/**
- * class decorator that replace the class and return a proxy around it
- * @param forceWatch non enumerable member to watch
- */
-export function Undoable(
-    forceWatch: Key[] = []
-) {
-    function proxyInternal<T extends Class<any>, K extends keyof T> (ctor: T) {
-        const proxyInternalClass =  class ProxyInternal {
-            // watch non enumerable property of an object
-            static nonEnumerableWatch: Key[];
-            static initialization: Function[];
-            history: Map<K, History<T>>;
-            master: MasterIndex;
-            inited = false;
-            target: T;
+function proxyInternal<T extends Class<any>, K extends keyof T> (ctor: T) {
+    const proxyInternalClass =  class ProxyInternal {
+        // watch non enumerable property of an object
+        static nonEnumerableWatch: Key[];
+        static initialization: Function[];
+        history: Map<K, History<T>>;
+        master: MasterIndex;
+        inited = false;
+        target: T;
 
-            constructor() {
-                this.history = new Map<K, History<T>>();
-            }
+        constructor() {
+            this.history = new Map<K, History<T>>();
+        }
 
-            init() {
-                if (!this.inited) {
-                    for (const [propKey, descriptor] of getAllPropertyNames(
-                        this.target
-                    )) {
-                        if (
-                            !(
-                                descriptor.writable === false ||
-                                typeof descriptor.value === "function" ||
-                                [
-                                    "constructor",
-                                    "__proxyInternal__"
-                                ].indexOf(propKey) !== -1
+        init() {
+            if (!this.inited) {
+                for (const [propKey, descriptor] of getAllPropertyNames(
+                    this.target
+                )) {
+                    if (
+                        !(
+                            descriptor.writable === false ||
+                            typeof descriptor.value === "function" ||
+                            [
+                                "constructor",
+                                "__proxyInternal__"
+                            ].indexOf(propKey) !== -1
+                        )
+                    ) {
+                        this.history.set(
+                            propKey as any,
+                            new History<any>(
+                                this.master,
+                                descriptor.value
                             )
-                        ) {
-                            this.history.set(
-                                propKey as any,
-                                new History<any>(
-                                    this.master,
-                                    descriptor.value
-                                )
-                            );
-                        }
+                        );
                     }
-                    this.inited = true;
                 }
+                this.inited = true;
             }
         }
-        const descriptor = Object.getOwnPropertyDescriptor(
-            proxyInternalClass,
-            "__proxyInternal__"
-        ) || { writable: true };
-        Object.defineProperty(proxyInternalClass, "name", {
-            ...descriptor,
-            enumerable: false,
-            value: `internal of ${ctor.name}`
-        });
-        return proxyInternalClass;
     }
+    const descriptor = Object.getOwnPropertyDescriptor(
+        proxyInternalClass,
+        "__proxyInternal__"
+    ) || { writable: true };
+    Object.defineProperty(proxyInternalClass, "name", {
+        ...descriptor,
+        enumerable: false,
+        value: `internal of ${ctor.name}`
+    });
+    return proxyInternalClass;
+}
 
-    return function aux<T extends Class<any>>(ctor: T) {
+function wrapper <T extends Class<any>>(forceWatch: Key[], proxify: boolean) {
+    return (ctor: T) => {
         const proxyInternalClass = proxyInternal(ctor);
         // bug of typescript : can not extends abstract class from parameters
         const anonymousClass = class ProxyWarper extends (ctor as any) {
@@ -115,12 +109,16 @@ export function Undoable(
                     enumerable: false,
                     value: proxyInternalInstance
                 });
-                return new Proxy(this, proxyHandler(this.__proxyInternal__, false)) as any;
+                if (proxify === true) {
+                    return new Proxy(this, proxyHandler(false)) as any;
+                }
             }
         };
 
         setForceWatch(anonymousClass, forceWatch);
         proxyInternalClass.nonEnumerableWatch = getForceWatch(anonymousClass);
+
+        // look for the UndoInit decorator
         let proto = ctor;
         do {
             if (initializationMap.has(proto)) {
@@ -129,6 +127,11 @@ export function Undoable(
                 break;
             }
         } while (proto = Object.getPrototypeOf(proto));
+
+        // check that no parents is UndoableNoParent
+        if (proxify === true && (ctor as any).__NoParent__ === true) {
+            throw Error(`@UndoableNoParent is already applied in the prototype chain of ${ctor.name}`)
+        }
 
         // static
         const proxyInternalInstance = new (proxyInternalClass as any)();
@@ -145,6 +148,32 @@ export function Undoable(
             enumerable: false,
             value: ctor
         });
-        return new Proxy(anonymousClass, proxyHandler(anonymousClass.__proxyInternal__, true)) as any;
+        Object.defineProperty(anonymousClass, "__NoParent__", {
+            enumerable: false,
+            value: true
+        });
+        return new Proxy(anonymousClass, proxyHandler(true)) as any;
     }
+}
+
+/**
+ * class decorator that must decorate the top most class
+ * (more precisely, it should appear only once in the prototype chain of an object)
+ * Don't decorate a class with both @Undoable and @Undoable
+ * @param forceWatch array of non enumerable member to watch
+ */
+export function UndoableNoParent(
+    forceWatch: Key[] = []
+) {
+    return wrapper(forceWatch, true);
+}
+/**
+ * class decorator that replace the class and return a proxy around it
+ * Don't decorate a class with both @Undoable and @Undoable
+ * @param forceWatch array of non enumerable member to watch
+ */
+export function Undoable(
+    forceWatch: Key[] = []
+) {
+    return wrapper(forceWatch, false);
 }

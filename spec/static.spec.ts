@@ -1,9 +1,9 @@
-import { Undoable, UndoRedo } from "../src/index";
+import { Undoable, UndoRedo, UndoableNoParent } from "../src/index";
 
 describe("static", () => {
     /* Attention, Class history are not reinitialized between test */
     test("static inheritance", () => {
-        @Undoable()
+        @UndoableNoParent()
         class A {
             static st = 1;
         }
@@ -19,7 +19,7 @@ describe("static", () => {
     });
 
     test("static inheritance", () => {
-        @Undoable()
+        @UndoableNoParent()
         class A {
             static st = 1;
             static sta = "A";
@@ -54,5 +54,4 @@ describe("static", () => {
         expect(A.st).toBe(1);
         expect(B.st).toBe(1);
     })
-
 });

@@ -1,6 +1,6 @@
 import { Map } from "../src/collection/map";
 import { Set } from "../src/collection/set";
-import { Undoable, UndoRedo } from "../src";
+import { Undoable, UndoRedo, UndoableNoParent } from "../src";
 
 @Undoable()
 class CustomMap<K, V> extends Map<K, V> {
@@ -33,7 +33,7 @@ function isIterable(obj: any) {
     return typeof obj[Symbol.iterator] === "function";
 }
 
-@Undoable()
+@UndoableNoParent()
 class CustomArray extends Array {
     constructor(args?: any[]) {
         super();

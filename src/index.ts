@@ -1,6 +1,6 @@
 import { MasterIndex, __initialization__ } from "./core";
 
-export { Undoable, UndoInit } from "./annotation";
+export { Undoable, UndoInit, UndoableNoParent } from "./annotation";
 export { Map } from "./collection/map";
 export { Set } from "./collection/set";
 
@@ -21,7 +21,7 @@ export class UndoRedo {
             __initialization__(watchable, this.index);
         }
         else {
-            throw Error(`${watchable} is not decorated with @Undoable()`);
+            throw Error(`${watchable} is not decorated with @UndoableNoParent()`);
         }
     }
 

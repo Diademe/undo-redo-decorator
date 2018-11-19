@@ -1,6 +1,6 @@
 "use strict";
 import { IteratorAbstract, Flag, Storage, isObject, hash, isCallable, InternalStorage } from "./utils";
-import { Undoable } from "../annotation";
+import { UndoableNoParent } from "../annotation";
 
 // tslint:disable:no-null-keyword
 
@@ -60,7 +60,7 @@ Object.defineProperty(MapIterator.prototype, Symbol.toStringTag, {
     configurable: true
 });
 
-@Undoable()
+@UndoableNoParent()
 class MapEntry<K, V> {
     next: MapEntry<K, V>;
     prev: MapEntry<K, V>;
@@ -70,7 +70,7 @@ class MapEntry<K, V> {
     }
 }
 
-@Undoable(["_data"])
+@UndoableNoParent(["_data"])
 export class Map<K, V> {
     _head: MapEntry<K, V>;
     _tail: MapEntry<K, V>;
