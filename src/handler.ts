@@ -36,8 +36,7 @@ export function proxyHandler<T extends Object, K extends keyof T>(isClass: boole
                         result = Reflect.get(target, propKey);
                         return typeof result === "function" ? result.bind(target) : result;
                     }
-                    const memberValue = Reflect.get(target, propKey);
-                    switch (typeof memberValue) {
+                    switch (typeof descriptor.value) {
                         case "undefined":
                             result = undefined;
                             break;
