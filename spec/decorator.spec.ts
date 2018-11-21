@@ -1,4 +1,4 @@
-import { Undoable, UndoInit, UndoableNoParent } from "../src/index";
+import { Undoable, UndoInit, UndoableNoParent, UndoRedo, UndoDoNotTrack } from "../src/index";
 import { is_constructor } from "../src/utils";
 
 describe("decorator", () => {
@@ -89,6 +89,43 @@ describe("decorator", () => {
                 }
             }
             expect(new Test().member).toEqual(Value.constructor);
+        });
+
+        test("do not track", () => {
+            @UndoableNoParent()
+            class MotherTest {
+                @UndoDoNotTrack
+                motherDNT: Number;
+                constructor() {
+                    this.motherDNT = 42;
+                }
+            }
+            @Undoable()
+            class ChildTest extends MotherTest {
+                @UndoDoNotTrack
+                childDNT: Number;
+                childDoTrack: Number;
+                constructor() {
+                    super();
+                    this.childDNT = 43;
+                    this.childDoTrack = 18
+                }
+            }
+            const childTest = new ChildTest();
+            const ud = new UndoRedo(childTest);
+            expect(childTest.motherDNT).toEqual(42);
+            expect(childTest.childDNT).toEqual(43);
+            expect(childTest.childDoTrack).toEqual(18);
+            childTest.motherDNT = 15;
+            childTest.childDNT = 44;
+            childTest.childDoTrack = 19;
+            expect(childTest.motherDNT).toEqual(15);
+            expect(childTest.childDNT).toEqual(44);
+            expect(childTest.childDoTrack).toEqual(19);
+            ud.undo();
+            expect(childTest.motherDNT).toEqual(15);
+            expect(childTest.childDNT).toEqual(44);
+            expect(childTest.childDoTrack).toEqual(18);
         });
 
         describe("initialization", () => {
