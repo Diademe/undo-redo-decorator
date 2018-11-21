@@ -26,31 +26,21 @@ export function proxyHandler<T extends Object, K extends keyof T>(isClass: boole
                 case "__proxyInternal__":
                     result = Reflect.get(target, propKey, receiver);
                     break;
-                case "__originalConstructor__":
-                    do {
-                        result = Reflect.get(target, propKey, receiver);
-                    } while ((result as any).__originalConstructor__);
-                    break;
                 default:
+                    if ([Map, WeakMap, Set, WeakSet].find((es6Collection) => target instanceof es6Collection)) {
+                        throw new Error(`${target.constructor.name} is an instance of an ES6 collection which is incompatible with Undo Redo Proxy`);
+                    }
                     if (!(target as any).__proxyInternal__.inited) {
-                        result = Reflect.get(target, propKey);
-                        return typeof result === "function" ? result.bind(target) : result;
+                        result = Reflect.get(target, propKey, receiver);
+                        return result;
+                        // return typeof result === "function" ? result.bind(target) : result;
                     }
                     switch (typeof descriptor.value) {
                         case "undefined":
                             result = undefined;
                             break;
                         case "function":
-                            switch (propKey) {
-                                case "has":
-                                case "values":
-                                case "entries":
-                                    result = Reflect.get(target, propKey);
-                                    break;
-                                default:
-                                    result = Reflect.get(target, propKey, receiver);
-                                    break;
-                            }
+                            result = Reflect.get(target, propKey, receiver);
                             break;
                         default:
                             // if historyTarget is undefined, the property doesn't exist on the target
