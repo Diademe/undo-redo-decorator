@@ -50,13 +50,6 @@ class CustomArray extends Array {
     }
 }
 
-@Undoable()
-class CustomDate extends Date {
-    constructor(args: string | number) {
-        super(args);
-    }
-}
-
 describe("immutable", () => {
     describe("collections", () => {
         describe("CustomSet", () => {
@@ -178,18 +171,6 @@ describe("immutable", () => {
             test("[Symbol​.iterator]()", () => {
                 expect(Array.from(x[Symbol​.iterator]())).toEqual([1, 2, 3]);
             });
-        });
-
-        test("CustomDate", () => {
-            const x = new CustomDate("December 17, 1995 03:24:00");
-            expect(x.getDate()).toBe(17);
-            expect(x.getDay()).toBe(0);
-            expect(x.getHours()).toBe(3);
-            expect(x.toUTCString()).toBe("Sun, 17 Dec 1995 02:24:00 GMT");
-            expect(x[Symbol.toPrimitive]("string")).toBe(
-                "Sun Dec 17 1995 03:24:00 GMT+0100 (Central European Standard Time)"
-            );
-            expect(x.valueOf()).toBe(819167040000);
         });
     });
 });
