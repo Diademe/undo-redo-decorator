@@ -1,7 +1,7 @@
 import { Undoable, UndoInit, UndoableNoParent } from "../src/index";
 import { is_constructor } from "../src/utils";
 
-describe("hesitance", () => {
+describe("decorator", () => {
     const db = new Set<any>();
     function save<T extends Object, K extends keyof T>(
         target: T,
@@ -60,7 +60,7 @@ describe("hesitance", () => {
     describe("factory and initialization", () => {
         enum Value { default, constructor, initialization };
         test("default", () => {
-            @Undoable()
+            @UndoableNoParent()
             class Test {
                 member = Value.default;
                 constructor(init = true) {
@@ -76,7 +76,7 @@ describe("hesitance", () => {
         });
 
         test("constructor", () => {
-            @Undoable()
+            @UndoableNoParent()
             class Test {
                 member = Value.default;
                 constructor(init = true) {
@@ -93,7 +93,7 @@ describe("hesitance", () => {
 
         describe("initialization", () => {
             test("simple", () => {
-                @Undoable()
+                @UndoableNoParent()
                 class Test {
                     member = Value.default;
                     constructor(init = true) {
@@ -110,7 +110,7 @@ describe("hesitance", () => {
             });
 
             test("inheritance", () => {
-                @Undoable()
+                @UndoableNoParent()
                 class Mother {
                     member = 1;
                     @UndoInit
