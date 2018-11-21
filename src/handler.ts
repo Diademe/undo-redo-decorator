@@ -6,14 +6,19 @@ const deleted = {};
 export function proxyHandler<T extends Object, K extends keyof T>(isClass: boolean) {
     return {
         get(target: T, propKey: K, receiver: any) {
-            const historyMap = (target as any).__proxyInternal__.history;
-            const historyTarget: History<T[K]> = historyMap.get(propKey);
-            let result: T[K];
+            // member decorated with @UndoDoNotTrack should be ignored
+            const set = (target as any).__proxyInternal__.constructor.doNotTrack;
+            if (set.has(propKey)) {
+                return Reflect.get(target, propKey, receiver);
+            }
             const descriptor = getInheritedPropertyDescriptor(target, propKey) || {};
             // we should not save setter getter otherwise the logic inside them will be bypassed
             if (descriptor.set || descriptor.get || descriptor.writable === false) {
                 return Reflect.get(target, propKey, receiver);
             }
+            const historyMap = (target as any).__proxyInternal__.history;
+            const historyTarget: History<T[K]> = historyMap.get(propKey);
+            let result: T[K];
             switch (propKey) {
                 case undefined:
                     throw TypeError(propKey.toString() + " is undefined");
@@ -54,7 +59,10 @@ export function proxyHandler<T extends Object, K extends keyof T>(isClass: boole
             return target;
         },
         set(target: T, propKey: K, value: any, receiver: any) {
-            if (!(target as any).__proxyInternal__.inited) {
+            // member decorated with @UndoDoNotTrack should not be recorded
+            const set = (target as any).__proxyInternal__.constructor.doNotTrack;
+            // if the instance is not initialized, the set should not be recorded
+            if (!(target as any).__proxyInternal__.inited || set.has(propKey)) {
                 return Reflect.set(target, propKey, value, receiver);
             }
             // we should not save setter getter otherwise the logic inside them will be bypassed

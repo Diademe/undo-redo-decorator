@@ -1,7 +1,7 @@
 import { proxyHandler } from "./handler";
 import { MasterIndex, History } from "./core";
 import { Class, Key } from "./type";
-import { getAllPropertyNames, initializationMap } from "./utils";
+import { getAllPropertyNames, initializationMap, doNotTrackMap } from "./utils";
 
 // save map (class -> non enumerable) that we need to watch
 const forceWatchMap = new Map<any, Key[]>();
@@ -32,11 +32,41 @@ export function UndoInit(target: any, propKey: Key) {
     initializationMap.set(target.constructor, propKey);
 }
 
+function findDoNotTrack(target: any) {
+    // if target is associated with a set, we should not clone the set
+    if (doNotTrackMap.has(target.constructor)) {
+        return doNotTrackMap.get(target.constructor);
+    }
+    // if a parent of the target is associated with a set,
+    // we should clone the set (so that child doNotTrack doesn't impact the parent)
+    while (target = Object.getPrototypeOf(target)) {
+        if (doNotTrackMap.has(target.constructor)) {
+            return new Set(doNotTrackMap.get(target.constructor));
+        }
+    };
+    return new Set();
+}
+
+/**
+ * property decorator. Property decorated will not be monitored by Undo Redo
+ */
+export function UndoDoNotTrack(target: any, propKey: Key) {
+    if (typeof target[propKey] === "function") {
+        console.warn("UndoDoNotTrack is unnecessary on function as they are not monitored by Undo Redo Proxy");
+    }
+    else {
+        const set = findDoNotTrack(target);
+        set.add(propKey);
+        doNotTrackMap.set(target.constructor, set);
+    }
+}
+
 function proxyInternal<T extends Class<any>, K extends keyof T> (ctor: T) {
     const proxyInternalClass =  class ProxyInternal {
         // watch non enumerable property of an object
         static nonEnumerableWatch: Key[];
         static initialization: Function[];
+        static doNotTrack: Set<Key>;
         history: Map<K, History<T>>;
         master: MasterIndex;
         inited = false;
@@ -74,6 +104,7 @@ function proxyInternal<T extends Class<any>, K extends keyof T> (ctor: T) {
             }
         }
     }
+    proxyInternalClass.doNotTrack = doNotTrackMap.get(ctor) || new Set<Key>();
     const descriptor = Object.getOwnPropertyDescriptor(
         proxyInternalClass,
         "__proxyInternal__"

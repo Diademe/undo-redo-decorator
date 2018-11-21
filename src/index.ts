@@ -1,6 +1,6 @@
 import { MasterIndex, __initialization__ } from "./core";
 
-export { Undoable, UndoInit, UndoableNoParent } from "./annotation";
+export { Undoable, UndoInit, UndoableNoParent, UndoDoNotTrack } from "./annotation";
 export { Map } from "./collection/map";
 export { Set } from "./collection/set";
 
