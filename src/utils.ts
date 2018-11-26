@@ -21,7 +21,9 @@ export function getAllPropertyNames<T>(obj: T) {
             );
             if (
                 propertyDescriptor.writable &&
-                props.findIndex(([prop2, _]) => { return prop2 === prop; }) === -1
+                props.findIndex(([prop2, _]) => {
+                    return prop2 === prop;
+                }) === -1
             ) {
                 props.push([prop, propertyDescriptor]);
             }
@@ -30,7 +32,10 @@ export function getAllPropertyNames<T>(obj: T) {
     return props;
 }
 
-export function getInheritedPropertyDescriptor<T extends Object, K extends keyof T>(object: T, propKey: K) {
+export function getInheritedPropertyDescriptor<
+    T extends Object,
+    K extends keyof T
+>(object: T, propKey: K) {
     let descriptor;
     let obj = object;
     do {
