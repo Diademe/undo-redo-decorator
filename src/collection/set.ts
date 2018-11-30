@@ -60,6 +60,7 @@ Object.defineProperty(SetIterator.prototype, Symbol.toStringTag, {
     configurable: true
 });
 
+@UndoableNoParent()
 class SetEntry<K> {
     @UndoInitSkip
     next: SetEntry<K>;
