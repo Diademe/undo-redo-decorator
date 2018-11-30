@@ -21,7 +21,7 @@ export class UndoRedo {
             __initialization__(watchable, this.index);
         }
         else {
-            throw Error(`${watchable} is not decorated with @UndoableNoParent()`);
+            throw Error(`${watchable} is not decorated with @UndoableNoParent() or @Undoable()`);
         }
     }
 

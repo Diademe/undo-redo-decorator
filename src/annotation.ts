@@ -108,6 +108,8 @@ function proxyInternal<T extends Class<any>, K extends keyof T> (ctor: T) {
 
         init() {
             if (!this.inited) {
+            // member decorated with @UndoDoNotTrack should be ignored
+                const set = (this.constructor as any).doNotTrack;
                 for (const [propKey, descriptor] of getAllPropertyNames(
                     this.target
                 )) {
@@ -118,7 +120,8 @@ function proxyInternal<T extends Class<any>, K extends keyof T> (ctor: T) {
                             [
                                 "constructor",
                                 "__proxyInternal__"
-                            ].indexOf(propKey) !== -1
+                            ].indexOf(propKey) !== -1 ||
+                            set.has(propKey)
                         )
                     ) {
                         this.history.set(

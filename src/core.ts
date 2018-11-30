@@ -13,6 +13,7 @@ export function __initialization__(proxyWrapper: any, masterIndex: MasterIndex) 
         proxyInternal.master = masterIndex;
         proxyInternal.init();
         const initSkip = proxyInternal.constructor.initSkip;
+        const doNotTrack = proxyInternal.constructor.doNotTrack
         for (const [prop, descriptor] of getAllPropertyNames(proxyWrapper)) {
             if (!descriptor.enumerable
                 || descriptor.writable === false
@@ -20,6 +21,7 @@ export function __initialization__(proxyWrapper: any, masterIndex: MasterIndex) 
                 || prop === "constructor"
                 || prop === "prototype"
                 || initSkip.has(prop)
+                || doNotTrack.has(prop)) {
                 continue;
             }
             __initialization__(descriptor.value, masterIndex);
