@@ -1,6 +1,6 @@
 "use strict";
 import { IteratorAbstract, Flag, Storage, hash, isCallable, InternalStorage } from "./utils";
-import { UndoableNoParent } from "../annotation";
+import { UndoableNoParent, UndoInitSkip } from "../annotation";
 
 // tslint:disable:no-null-keyword
 
@@ -61,7 +61,9 @@ Object.defineProperty(SetIterator.prototype, Symbol.toStringTag, {
 });
 
 class SetEntry<K> {
+    @UndoInitSkip
     next: SetEntry<K>;
+    @UndoInitSkip
     prev: SetEntry<K>;
     constructor(public value: K) {
         this.next = null;

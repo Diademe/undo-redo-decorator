@@ -60,4 +60,7 @@ export function notEnumerable(target: any, propertyKey: string) {
 export const initializationMap = new Map<any, Key>();
 
 // associate class to function name to be called after creation
+export const initSkipMap = new Map<any, Set<Key>>();
+
+// associate class to function name to be called after creation
 export const doNotTrackMap = new Map<any, Set<Key>>();

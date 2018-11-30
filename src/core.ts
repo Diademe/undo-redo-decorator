@@ -12,12 +12,14 @@ export function __initialization__(proxyWrapper: any, masterIndex: MasterIndex) 
     ) {
         proxyInternal.master = masterIndex;
         proxyInternal.init();
+        const initSkip = proxyInternal.constructor.initSkip;
         for (const [prop, descriptor] of getAllPropertyNames(proxyWrapper)) {
             if (!descriptor.enumerable
                 || descriptor.writable === false
                 || typeof descriptor.value === "function"
                 || prop === "constructor"
-                || prop === "prototype") {
+                || prop === "prototype"
+                || initSkip.has(prop)
                 continue;
             }
             __initialization__(descriptor.value, masterIndex);
