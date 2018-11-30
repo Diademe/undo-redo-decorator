@@ -55,7 +55,7 @@ describe("type", () => {
 
         m.undo(0);
         // h is not defied at index 0 (it is created at index 1)
-        expect(() => h.get()).toThrow();
+        expect(h.get()).toBeUndefined();
 
         m.redo(1);
         expect(h.get()).toBe(0);

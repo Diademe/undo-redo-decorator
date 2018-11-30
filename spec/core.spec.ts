@@ -284,14 +284,14 @@ describe("core", () => {
             getSet.SGMember = 1;
             expect(getSet.SGMember).toBe(2);
             ud.undo();
-            expect(() => getSet.SGMember).toThrow();
+            expect(getSet.SGMember).toBeNaN();
         });
 
         test("inherited get set", () => {
             getSet.SGMember = 1;
             expect(getSet.SGMember).toBe(2);
             ud.undo();
-            expect(() => getSet.SGMember).toThrow();
+            expect(getSet.SGMember).toBeNaN();
         });
     });
 });

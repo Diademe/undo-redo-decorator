@@ -50,12 +50,8 @@ export class History<T> {
     get(): T {
         const index = this.masterIndex.get(this.history);
         if (index === -1) {
-            throw Error(
-                `the object ${JSON.stringify(
-                    this
-                )} is not define for this state of undo ${this.masterIndex.getCurrentIndex()}
-                it was defined at ${this.history[0][0].indexVersion}`
-            );
+            // the object is not define for this state of undo
+            return undefined;
         }
         return this.history[index][1];
     }
