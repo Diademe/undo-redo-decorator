@@ -100,6 +100,7 @@ function proxyInternal<T extends Class<any>, K extends keyof T> (ctor: T) {
         history: Map<K, History<T>>;
         master: MasterIndex;
         inited = false;
+        disabled = false;
         target: T;
 
         constructor() {
@@ -107,8 +108,8 @@ function proxyInternal<T extends Class<any>, K extends keyof T> (ctor: T) {
         }
 
         init() {
-            if (!this.inited) {
             // member decorated with @UndoDoNotTrack should be ignored
+            if (!this.inited || this.disabled) {
                 const set = (this.constructor as any).doNotTrack;
                 for (const [propKey, descriptor] of getAllPropertyNames(
                     this.target
@@ -124,13 +125,19 @@ function proxyInternal<T extends Class<any>, K extends keyof T> (ctor: T) {
                             set.has(propKey)
                         )
                     ) {
-                        this.history.set(
-                            propKey as any,
-                            new History<any>(
-                                this.master,
-                                descriptor.value
-                            )
-                        );
+                        // if we reinitialize the value (for performance, we might stop watch a spliced array)
+                        if (this.history.has(propKey as any)) {
+                            this.history.get(propKey as any).set(descriptor.value);
+                        }
+                        else {
+                            this.history.set(
+                                propKey as any,
+                                new History<any>(
+                                    this.master,
+                                    descriptor.value
+                                )
+                            );
+                        }
                     }
                 }
                 this.inited = true;

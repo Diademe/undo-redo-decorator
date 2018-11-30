@@ -3,9 +3,14 @@ import { getInheritedPropertyDescriptor } from "./utils";
 
 const deleted = {};
 
+const optimization = new Set(["concat", "reverse", "shift", "sort", "splice", "unshift"]);
+
 export function proxyHandler<T extends Object, K extends keyof T>(isClass: boolean) {
     return {
         get(target: T, propKey: K, receiver: any) {
+            if (!(target as any).__proxyInternal__.inited || (target as any).__proxyInternal__.disabled) {
+                return Reflect.get(target, propKey, receiver);
+            }
             // member decorated with @UndoDoNotTrack should be ignored
             const set = (target as any).__proxyInternal__.constructor.doNotTrack;
             if (set.has(propKey)) {
@@ -35,17 +40,23 @@ export function proxyHandler<T extends Object, K extends keyof T>(isClass: boole
                     if ([Map, WeakMap, Set, WeakSet].find((es6Collection) => target instanceof es6Collection)) {
                         throw new Error(`${target.constructor.name} is an instance of an ES6 collection which is incompatible with Undo Redo Proxy`);
                     }
-                    if (!(target as any).__proxyInternal__.inited) {
-                        result = Reflect.get(target, propKey, receiver);
-                        return result;
-                        // return typeof result === "function" ? result.bind(target) : result;
-                    }
                     switch (typeof descriptor.value) {
                         case "undefined":
                             result = undefined;
                             break;
                         case "function":
                             result = Reflect.get(target, propKey, receiver);
+                            if (target instanceof Array) {
+                                if (optimization.has(propKey as any)) {
+                                    return function(...args: any[]) {
+                                        (target as any).__proxyInternal__.disabled = true;
+                                        const res = (result as any).apply(this, args);
+                                        (target as any).__proxyInternal__.init();
+                                        (target as any).__proxyInternal__.disabled = false;
+                                        return res;
+                                    }
+                                }
+                            }
                             break;
                         default:
                             // if historyTarget is undefined, the property doesn't exist on the target
@@ -62,7 +73,7 @@ export function proxyHandler<T extends Object, K extends keyof T>(isClass: boole
             // member decorated with @UndoDoNotTrack should not be recorded
             const set = (target as any).__proxyInternal__.constructor.doNotTrack;
             // if the instance is not initialized, the set should not be recorded
-            if (!(target as any).__proxyInternal__.inited || set.has(propKey)) {
+            if (!(target as any).__proxyInternal__.inited || set.has(propKey) || (target as any).__proxyInternal__.disabled) {
                 return Reflect.set(target, propKey, value, receiver);
             }
             // we should not save setter getter otherwise the logic inside them will be bypassed
@@ -96,11 +107,11 @@ export function proxyHandler<T extends Object, K extends keyof T>(isClass: boole
             else {
                 history.get(propKey).set(value);
             }
-            Reflect.set(target, propKey, value); // keep object up to date to allow iteration over it
+            Reflect.set(target, propKey, value, receiver); // keep object up to date to allow iteration over it
             return result;
         },
         has(target: T, propKey: K) {
-            if (!(target as any).__proxyInternal__.inited) {
+            if (!(target as any).__proxyInternal__.inited || (target as any).__proxyInternal__.disabled) {
                 return Reflect.has(target, propKey);
             }
             const history: Map<K, History<T[K]>> = (target as any).__proxyInternal__.history;
