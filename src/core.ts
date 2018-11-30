@@ -106,6 +106,7 @@ export class MasterIndex {
      * return true if there was something to save
      */
     public save(): boolean {
+        console.info(`save (${this.getCurrentIndex()}), state before save ${State[this.lastState]}`);
         if (this.lastState === State.Dirty) {
             this.lastState = State.Clean;
             return true;
@@ -125,6 +126,8 @@ export class MasterIndex {
      * @param index to which state do you want to go (default : last saved state)
      */
     public undo(index?: number): void {
+        const log = this.getCurrentIndex();
+        const redoVersion = this.lastRedo;
         // undefined because index can be 0
         index =
             index !== undefined
@@ -141,6 +144,7 @@ export class MasterIndex {
         }
         this.index = index;
         this.lastState = State.Clean;
+        console.info(`undo (${log}-${redoVersion}, ${this.getCurrentIndex()}-${this.lastRedo}), ${State[this.lastState]}`);
     }
 
     public redoPossible() {
@@ -158,6 +162,8 @@ export class MasterIndex {
      * @param index to which state do you want to go (default : last saved state)
      */
     public redo(index?: number): void {
+        const log = this.getCurrentIndex()
+        const redoVersion = this.lastRedo;
         index = index !== undefined ? index : this.getCurrentIndex() + 1;
         if (
             index <= this.getCurrentIndex() ||
@@ -172,6 +178,7 @@ export class MasterIndex {
         }
         this.index = Math.min(index, this.branchHistory.length - 1);
         this.lastState = State.Clean;
+        console.info(`redo (${log}-${redoVersion}, ${this.getCurrentIndex()}-${this.lastRedo}), ${State[this.lastState]}`);
     }
 
     private findIndex<T>(slaveIndexHistory: SuperArray<[Index, T]>) {

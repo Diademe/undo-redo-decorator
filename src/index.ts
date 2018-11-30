@@ -43,7 +43,6 @@ export class UndoRedo {
      * return true if there was something to save
      */
     public save(): boolean {
-        console.log("save:", this.getCurrentIndex());
         return this.index.save();
     }
 
@@ -54,7 +53,6 @@ export class UndoRedo {
     public undo(index?: number) {
         if (this.inited) {
             this.index.undo(index ? index + 1 : index);
-            console.log("undo:", this.getCurrentIndex());
         }
     }
 
@@ -65,7 +63,6 @@ export class UndoRedo {
     public redo(index?: number): void {
         if (this.inited) {
             this.index.redo(index ? index + 1 : index);
-            console.log("redo:", this.getCurrentIndex());
         }
     }
 
