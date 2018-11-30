@@ -156,7 +156,7 @@ export function proxyHandler<T extends Object, K extends keyof T>(isClass: boole
             return res;
         },
         getOwnPropertyDescriptor(target: T, propKey: K) {
-            const res = Reflect.getOwnPropertyDescriptor(target, propKey)
+            const res = Reflect.getOwnPropertyDescriptor(target, propKey);
             if (res === undefined && isClass === false && Object.getPrototypeOf(target)) {
                 return Reflect.getOwnPropertyDescriptor(Object.getPrototypeOf(Object.getPrototypeOf(target)), propKey);
             }
