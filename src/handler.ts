@@ -69,6 +69,17 @@ export function proxyHandler<T extends Object, K extends keyof T>(isClass: boole
         getPrototypeOf(target: T) {
             return target;
         },
+        defineProperty(target: T, propKey: K, descriptor: any) {
+            if (isClass) {
+                const previousDescriptor = this.getOwnPropertyDescriptor(target, propKey);
+                const newDescriptor = {...previousDescriptor, ...descriptor};
+                Reflect.defineProperty(target, propKey, newDescriptor);
+            }
+            else {
+                Reflect.defineProperty(target, propKey, descriptor);
+            }
+            return true;
+        },
         set(target: T, propKey: K, value: any, receiver: any) {
             // member decorated with @UndoDoNotTrack should not be recorded
             const set = (target as any).__proxyInternal__.constructor.doNotTrack;
