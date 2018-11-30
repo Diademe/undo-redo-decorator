@@ -225,7 +225,18 @@ export class MasterIndex {
             }
             return;
         }
-        slaveIndexHistory.length = iSlave === -1 ? 1 : iSlave + 2;
+        // no index found, create a new array of length 1
+        if (iSlave === -1) {
+            slaveIndexHistory.length = 1;
+        }
+        // slave index found but for an earlier version than master index
+        else if (slaveIndexHistory.last[0].indexVersion < this.index) {
+            slaveIndexHistory.length++;
+        }
+        // slave index found, same as master index, rewrite to of the slaveIndexHistory
+        else {
+            slaveIndexHistory.length = iSlave + 1;
+        }
         this.lastState = State.Dirty;
         slaveIndexHistory.last = [new Index(this.index, this.lastRedo), obj];
     }
