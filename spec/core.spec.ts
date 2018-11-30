@@ -190,6 +190,7 @@ describe("core", () => {
             expect(m.getCurrentIndex()).toBe(1);
 
             m.set(h, 1);
+            expect(m.getCurrentIndex()).toBe(2);
             expect(h).toEqual([[new Index(1, 0), 0], [new Index(2, 0), 1]]);
             m.save();
             expect(m.getCurrentIndex()).toBe(2);

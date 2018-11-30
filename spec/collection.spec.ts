@@ -59,9 +59,12 @@ describe("immutable", () => {
                 x = new CustomSet([1, 2, 3]);
                 ud = new UndoRedo(x);
             });
-            test("Set", () => {
+            test("add", () => {
+                expect(Array.from(x.values())).toEqual([1, 2, 3]);
                 x.add(4);
-                expect(Array.from(x.values())).toEqual([1, 2, 3, 4])
+                expect(Array.from(x.values())).toEqual([1, 2, 3, 4]);
+                ud.undo();
+                expect(Array.from(x.values())).toEqual([1, 2, 3]);
             });
         });
 
@@ -101,8 +104,10 @@ describe("immutable", () => {
 
         describe("CustomArray", () => {
             let x: CustomArray;
+            let ud: UndoRedo;
             beforeEach(() => {
                 x = new CustomArray([1, 2, 3]);
+                ud = new UndoRedo(x);
             });
             test("instanceof", () => {
                 expect(CustomArray.from([1, 2, 3])).toBeInstanceOf(CustomArray);
@@ -158,7 +163,14 @@ describe("immutable", () => {
             test("pop", () => {
                 expect(x.pop()).toEqual(3);
             });
-            test("push", () => {
+            test("length", () => {
+                expect(x.length).toEqual(3);
+                x.pop()
+                expect(x.length).toEqual(2);
+                ud.undo();
+                expect(x.length).toEqual(3);
+            });
+            test("reduce", () => {
                 function add(v: number, acc: number) {
                     return v + acc;
                 }
@@ -167,6 +179,14 @@ describe("immutable", () => {
             test("sort", () => {
                 expect(x.reverse()).toEqual(CustomArray.from([3, 2, 1])); // in place
                 expect(x.sort()).toEqual(CustomArray.from([1, 2, 3])); // in place
+            });
+            test("splice", () => {
+                x.splice(1, 1);
+                expect(x).toEqual(CustomArray.from([1, 3])); // in place
+            });
+            test("shift", () => {
+                x.shift();
+                expect(x).toEqual(CustomArray.from([2, 3])); // in place
             });
             test("[Symbol​.iterator]()", () => {
                 expect(Array.from(x[Symbol​.iterator]())).toEqual([1, 2, 3]);
