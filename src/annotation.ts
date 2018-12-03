@@ -94,7 +94,7 @@ function proxyInternal<T extends Class<any>, K extends keyof T> (ctor: T) {
     const proxyInternalClass =  class ProxyInternal {
         // watch non enumerable property of an object
         static nonEnumerableWatch: Key[];
-        static initialization: Function[];
+        static initialization: Function;
         static doNotTrack: Set<Key>;
         static initSkip: Set<Key>;
         history: Map<K, History<T>>;
@@ -110,7 +110,7 @@ function proxyInternal<T extends Class<any>, K extends keyof T> (ctor: T) {
         init() {
             // member decorated with @UndoDoNotTrack should be ignored
             if (!this.inited || this.disabled) {
-                const set = (this.constructor as any).doNotTrack;
+                const doNotTrack = (this.constructor as any).doNotTrack;
                 for (const [propKey, descriptor] of getAllPropertyNames(
                     this.target
                 )) {
@@ -122,7 +122,7 @@ function proxyInternal<T extends Class<any>, K extends keyof T> (ctor: T) {
                                 "constructor",
                                 "__proxyInternal__"
                             ].indexOf(propKey) !== -1 ||
-                            set.has(propKey)
+                            doNotTrack.has(propKey)
                         )
                     ) {
                         // if we reinitialize the value (for performance, we might stop watch a spliced array)

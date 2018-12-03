@@ -12,8 +12,8 @@ export function proxyHandler<T extends Object, K extends keyof T>(isClass: boole
                 return Reflect.get(target, propKey, receiver);
             }
             // member decorated with @UndoDoNotTrack should be ignored
-            const set = (target as any).__proxyInternal__.constructor.doNotTrack;
-            if (set.has(propKey)) {
+            const doNotTrack = (target as any).__proxyInternal__.constructor.doNotTrack;
+            if (doNotTrack.has(propKey)) {
                 return Reflect.get(target, propKey, receiver);
             }
             const descriptor = getInheritedPropertyDescriptor(target, propKey) || {};
