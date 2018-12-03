@@ -7,7 +7,7 @@ export { Set } from "./collection/set";
 export class UndoRedo {
     private index: MasterIndex;
     private inited = false;
-    constructor(private watchable?: any) {
+    constructor(watchable?: any) {
         this.index = new MasterIndex();
         if (watchable) {
             this.internalAdd(watchable);
