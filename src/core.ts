@@ -114,10 +114,6 @@ export class MasterIndex {
         return false;
     }
 
-    public undoPossible() {
-        return this.getCurrentIndex() > 0;
-    }
-
     /**
      * undo: go back to a previous saved state
      *  if index is defined, got to this state of history
