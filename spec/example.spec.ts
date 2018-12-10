@@ -1,6 +1,6 @@
-import { UndoRedo, UndoableNoParent } from "../src";
+import { UndoRedo, Undoable } from "../src";
 
-@UndoableNoParent()
+@Undoable()
 class Fifo<T> extends Array<T> {
     constructor(args?: any[]) {
         super();
@@ -19,7 +19,7 @@ class Fifo<T> extends Array<T> {
     }
 }
 
-@UndoableNoParent()
+@Undoable()
 class Pair<T> {
     constructor(private a: T, private b: T) {}
     get first() {
@@ -42,7 +42,7 @@ class Pair<T> {
     }
 }
 
-@UndoableNoParent()
+@Undoable()
 class LinkedList<T> {
     constructor(public val: T, public next: LinkedList<T>) {}
     static end<T>(list: LinkedList<T>) {
@@ -59,10 +59,10 @@ describe("example", () => {
         const stack = new Fifo<number>();
         const undoRedo = new UndoRedo(stack);
         expect(undoRedo.getCurrentIndex()).toBe(0);
-        undoRedo.save();
         stack.push(1);
         stack.push(2);
         expect(stack.toArray()).toEqual([1, 2]);
+        undoRedo.save();
         expect(undoRedo.getCurrentIndex()).toBe(1);
         undoRedo.save();
         expect(undoRedo.getCurrentIndex()).toBe(1);
@@ -83,68 +83,45 @@ describe("example", () => {
         expect(stack.toArray()).toEqual([new Pair(1, 1), new Pair(2, 2)]);
         stack[0].first = 0;
         expect(stack.toArray()).toEqual([new Pair(0, 1), new Pair(2, 2)]);
+        undoRedo.save();
         undoRedo.undo();
         expect(stack.toArray()).toEqual([new Pair(1, 1), new Pair(2, 2)]);
         undoRedo.redo();
         expect(stack.toArray()).toEqual([new Pair(0, 1), new Pair(2, 2)]);
     });
 
-    test("stack of pair", () => {
-        const listHead0 = new LinkedList<Pair<number>>(new Pair(0, 0), undefined);
-        const listHead1 = new LinkedList<Pair<number>>(new Pair(1, 0), undefined);
-        let listPt0 = listHead0;
-        let listPt1 = listHead1;
-        for (let i = 1; i < 3; i++) {
-            const newElt0 = new LinkedList<Pair<number>>(new Pair(0, i), listPt0);
-            const newElt1 = new LinkedList<Pair<number>>(new Pair(1, i), listPt1);
-            listPt0 = newElt0;
-            listPt1 = newElt1;
-        }
-        listHead0.next = listPt0;
-        listHead1.next = listPt1;
+    test("LinkedList of pair", () => {
+        const listHead0 = new LinkedList<Pair<number>>(
+            new Pair(0, 0),
+            new LinkedList<Pair<number>>(new Pair(0, 1), undefined));
+        const listHead1 = new LinkedList<Pair<number>>(
+            new Pair(1, 0),
+            new LinkedList<Pair<number>>(new Pair(1, 1), undefined));
+
+        const listTail0 = LinkedList.end(listHead0);
+        listTail0.next = listHead0;
         const undoRedo = new UndoRedo(listHead0);
-        listPt0 = listHead0;
-        listPt1 = listHead1;
-        let i = 0;
-        // check original list is as intended
-        do {
-            expect(listPt0.val).toEqual(new Pair(0, i));
-            expect(listPt1.val).toEqual(new Pair(1, i));
-            listPt0 = listPt0.next;
-            listPt1 = listPt1.next;
-            i = (i - 1 + 3) % 3 ;
-        } while (listPt0 !== listHead0);
+
+        listTail0.next = listHead1;
 
         undoRedo.save();
-
-        listPt0 = LinkedList.end(listHead0);
-        listPt0.next = listHead1;
-
-        undoRedo.save();
+        // L0.0 -> L0.1 -> L1.0 -> L1.1
         expect(listHead0.val).toEqual(new Pair(0, 0));
-        expect(listHead0.next.val).toEqual(new Pair(0, 2));
-        expect(listHead0.next.next.val).toEqual(new Pair(0, 1));
-        expect(listHead0.next.next.next.val).toEqual(new Pair(1, 0));
-        expect(listHead0.next.next.next.next.val).toEqual(new Pair(1, 2));
-        expect(listHead0.next.next.next.next.next.val).toEqual(new Pair(1, 1));
-        expect(listHead0.next.next.next.next.next.next.val).toEqual(new Pair(1, 0));
-        expect(listHead0.next.next.next.next.next.next.val).toBe(listHead1.val);
+        expect(listHead0.next.val).toEqual(new Pair(0, 1));
+        expect(listHead0.next.next.val).toEqual(new Pair(1, 0));
+        expect(listHead0.next.next.next.val).toEqual(new Pair(1, 1));
 
         undoRedo.undo();
+        // list 0 circular (L0.0 -> L0.1 -> L0.0)
         expect(listHead0.val).toEqual(new Pair(0, 0));
-        expect(listHead0.next.val).toEqual(new Pair(0, 2));
-        expect(listHead0.next.next.val).toEqual(new Pair(0, 1));
-        expect(listHead0.next.next.next.val).toEqual(new Pair(0, 0));
-        expect(listHead0.next.next.next.val).toBe(listHead0.val);
+        expect(listHead0.next.val).toEqual(new Pair(0, 1));
+        expect(listHead0.next.next.val).toEqual(new Pair(0, 0));
+        expect(listHead0.next.next.val).toBe(listHead0.val);
 
         undoRedo.redo();
         expect(listHead0.val).toEqual(new Pair(0, 0));
-        expect(listHead0.next.val).toEqual(new Pair(0, 2));
-        expect(listHead0.next.next.val).toEqual(new Pair(0, 1));
-        expect(listHead0.next.next.next.val).toEqual(new Pair(1, 0));
-        expect(listHead0.next.next.next.next.val).toEqual(new Pair(1, 2));
-        expect(listHead0.next.next.next.next.next.val).toEqual(new Pair(1, 1));
-        expect(listHead0.next.next.next.next.next.next.val).toEqual(new Pair(1, 0));
-        expect(listHead0.next.next.next.next.next.next.val).toBe(listHead1.val);
+        expect(listHead0.next.val).toEqual(new Pair(0, 1));
+        expect(listHead0.next.next.val).toEqual(new Pair(1, 0));
+        expect(listHead0.next.next.next.val).toEqual(new Pair(1, 1));
     });
 });

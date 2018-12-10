@@ -1,57 +1,14 @@
-import { SuperArray, Index } from "./type";
-import { getAllPropertyNames } from "./utils";
+import { SuperArray, Index, Class } from "./type";
 
-export function __initialization__(proxyWrapper: any, masterIndex: MasterIndex) {
-    if (!proxyWrapper) {
-        return;
-    }
-    const proxyInternal = proxyWrapper.__proxyInternal__;
-    if (
-        proxyInternal &&
-        (!proxyInternal.inited || proxyInternal.master !== masterIndex)
-    ) {
-        proxyInternal.master = masterIndex;
-        proxyInternal.init();
-        const initSkip = proxyInternal.constructor.initSkip;
-        const doNotTrack = proxyInternal.constructor.doNotTrack
-        for (const [prop, descriptor] of getAllPropertyNames(proxyWrapper)) {
-            if (!descriptor.enumerable
-                || descriptor.writable === false
-                || typeof descriptor.value === "function"
-                || prop === "constructor"
-                || prop === "prototype"
-                || initSkip.has(prop)
-                || doNotTrack.has(prop)) {
-                continue;
-            }
-            __initialization__(descriptor.value, masterIndex);
-        }
-        // non enumerable member specified in arg of Undoable
-        (proxyInternal.constructor.nonEnumerableWatch as string[]).forEach(
-            (member: string) => {
-                __initialization__(proxyWrapper[member], masterIndex);
-            }
-        );
-        if (
-            [Array, Map, Set].some(
-                collection => proxyWrapper instanceof collection
-            )
-        ) {
-            [...proxyWrapper.entries()].forEach(([_, val]) =>
-                __initialization__(val, masterIndex)
-            );
-        }
-    }
-}
 
-export class History<T> {
-    private history: SuperArray<[Index, T]>;
-    constructor(private masterIndex: MasterIndex, obj: T) {
-        this.history = new SuperArray<[Index, T]>();
+export class History<T extends Class<any>, K extends keyof T> {
+    private history: SuperArray<[Index, T[K]]>;
+    constructor(private masterIndex: MasterIndex, obj: T[K]) {
+        this.history = new SuperArray<[Index, T[K]]>();
         this.masterIndex.set(this.history, obj);
     }
 
-    get(): T {
+    get(): T[K] {
         const index = this.masterIndex.get(this.history);
         if (index === -1) {
             // the object is not define for this state of undo
@@ -60,8 +17,8 @@ export class History<T> {
         return this.history[index][1];
     }
 
-    set(obj: T) {
-        this.masterIndex.set(this.history, obj);
+    set(obj: T[K]): boolean {
+        return this.masterIndex.set(this.history, obj);
     }
 
     clone(): this {
@@ -87,14 +44,12 @@ export class MasterIndex {
     // History branch when a modification is done after an undo (it erase the redo history)
     private branchHistory: SuperArray<number>;
     private index: number;
-    private lastState: State;
     private lastRedo: number;
     constructor() {
         this.branchHistory = new SuperArray<number>();
         this.lastRedo = 0;
         this.branchHistory.push(this.lastRedo);
         this.index = 0;
-        this.lastState = State.Clean;
     }
 
     public getCurrentIndex(): number {
@@ -105,13 +60,10 @@ export class MasterIndex {
      * save: the current state is saved
      * return true if there was something to save
      */
-    public save(): boolean {
-        console.info(`save (${this.getCurrentIndex()}), state before save ${State[this.lastState]}`);
-        if (this.lastState === State.Dirty) {
-            this.lastState = State.Clean;
-            return true;
-        }
-        return false;
+    public save(): void {
+        console.info(`save (${this.getCurrentIndex()})`);
+        this.branchHistory.push(this.lastRedo);
+        this.index++;
     }
 
     /**
@@ -139,8 +91,7 @@ export class MasterIndex {
             );
         }
         this.index = index;
-        this.lastState = State.Clean;
-        console.info(`undo (${log}-${redoVersion}, ${this.getCurrentIndex()}-${this.lastRedo}), ${State[this.lastState]}`);
+        console.info(`undo (${log}-${redoVersion}, ${this.getCurrentIndex()}-${this.lastRedo})`);
     }
 
     public redoPossible() {
@@ -173,8 +124,7 @@ export class MasterIndex {
             );
         }
         this.index = Math.min(index, this.branchHistory.length - 1);
-        this.lastState = State.Clean;
-        console.info(`redo (${log}-${redoVersion}, ${this.getCurrentIndex()}-${this.lastRedo}), ${State[this.lastState]}`);
+        console.info(`redo (${log}-${redoVersion}, ${this.getCurrentIndex()}-${this.lastRedo})`);
     }
 
     private findIndex<T>(slaveIndexHistory: SuperArray<[Index, T]>) {
@@ -197,29 +147,30 @@ export class MasterIndex {
         return iSlave;
     }
 
-    /**
-     * call this function each time
-     * @param slaveIndexHistory
-     */
-    public set<T>(slaveIndexHistory: SuperArray<[Index, T]>, obj: T): void {
+    public clearRedo() {
         if (this.redoPossible()) {
             // parent node: index from which we branch
             this.branchHistory.length = this.index + 1;
             this.lastRedo = this.lastRedo + 1;
         }
-        if (this.lastState === State.Clean) {
-            this.branchHistory.push(this.lastRedo);
-            this.index++;
+    }
+
+    /**
+     * call this function each time
+     * @param slaveIndexHistory
+     */
+    public set<T, K extends keyof T>(slaveIndexHistory: SuperArray<[Index, T[K]]>, obj: T[K]): boolean {
+        if (this.redoPossible()) {
+            // parent node: index from which we branch
+            this.branchHistory.length = this.index + 1;
+            this.lastRedo = this.lastRedo + 1;
         }
+
         const iSlave = this.findIndex(slaveIndexHistory);
         slaveIndexHistory.length = iSlave + 1;
         // we don't write twice an item at the end of the history
         if (slaveIndexHistory.length > 0 && slaveIndexHistory.last[1] === obj) {
-            if (this.lastState === State.Clean) {
-                this.branchHistory.pop();
-                this.index--;
-            }
-            return;
+            return false;
         }
         // no index found, create a new array of length 1
         if (iSlave === -1) {
@@ -233,8 +184,8 @@ export class MasterIndex {
         else {
             slaveIndexHistory.length = iSlave + 1;
         }
-        this.lastState = State.Dirty;
         slaveIndexHistory.last = [new Index(this.index, this.lastRedo), obj];
+        return true;
     }
 
     public get<T>(slaveIndexHistory: SuperArray<[Index, T]>): number {

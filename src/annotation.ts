@@ -1,7 +1,6 @@
-import { proxyHandler } from "./handler";
 import { MasterIndex, History } from "./core";
-import { Class, Key } from "./type";
-import { getAllPropertyNames, initializationMap, doNotTrackMap, initSkipMap } from "./utils";
+import { Class, Key, Visitor } from "./type";
+import { getAllPropertyNames, doNotTrackMap, getInheritedPropertyDescriptor } from "./utils";
 
 // save map (class -> non enumerable) that we need to watch
 const forceWatchMap = new Map<any, Key[]>();
@@ -14,22 +13,12 @@ function setForceWatch(target: any, forceWatch: Key[]) {
     metaData.push(...forceWatch);
 }
 
-function getForceWatch(target: any): Key[] {
-    const metaData: Key[] = []
+function getForceWatch<T, K extends keyof T>(target: T): K[] {
+    const metaData: K[] = []
     do {
-        metaData.push(...(forceWatchMap.get(target) || []))
+        metaData.push(...(forceWatchMap.get(target) as any || []));
     } while (target = Object.getPrototypeOf(target))
     return metaData;
-}
-
-/**
- * function decorator. this function will be called after object creation
- */
-export function UndoInit(target: any, propKey: Key) {
-    if (initializationMap.has(target.constructor)) {
-        console.warn(`init has already been applied to the class ${target.constructor.name}`);
-    }
-    initializationMap.set(target.constructor, propKey);
 }
 
 function findDoNotTrack(target: any) {
@@ -47,35 +36,6 @@ function findDoNotTrack(target: any) {
     return new Set();
 }
 
-function findInitSkip(target: any) {
-    // if target is associated with a set, we should not clone the set
-    if (initSkipMap.has(target.constructor)) {
-        return initSkipMap.get(target.constructor);
-    }
-    // if a parent of the target is associated with a set,
-    // we should clone the set (so that child doNotTrack doesn't impact the parent)
-    while (target = Object.getPrototypeOf(target)) {
-        if (initSkipMap.has(target.constructor)) {
-            return new Set(initSkipMap.get(target.constructor));
-        }
-    };
-    return new Set();
-}
-
-/**
- * property decorator. Property decorated will not be monitored by Undo Redo
- */
-export function UndoInitSkip(target: any, propKey: Key) {
-    if (typeof target[propKey] === "function") {
-        console.warn("UndoDoNotTrack is unnecessary on function as they are not monitored by Undo Redo Proxy");
-    }
-    else {
-        const set = findInitSkip(target);
-        set.add(propKey);
-        initSkipMap.set(target.constructor, set);
-    }
-}
-
 /**
  * property decorator. Property decorated will not be monitored by Undo Redo
  */
@@ -90,65 +50,127 @@ export function UndoDoNotTrack(target: any, propKey: Key) {
     }
 }
 
-function proxyInternal<T extends Class<any>, K extends keyof T> (ctor: T) {
+function proxyInternal<T extends Class<any>, K extends keyof T> (ctor: new(...args: any[]) => T) {
     const proxyInternalClass =  class ProxyInternal {
         // watch non enumerable property of an object
-        static nonEnumerableWatch: Key[];
-        static initialization: Function;
-        static doNotTrack: Set<Key>;
-        static initSkip: Set<Key>;
-        history: Map<K, History<T>>;
+        static nonEnumerables: K[];
+        static doNotTrack: Set<K>;
+        history: Map<K, History<T, K>>;
         master: MasterIndex;
-        inited = false;
-        disabled = false;
         target: T;
+        action: number;
 
         constructor() {
-            this.history = new Map<K, History<T>>();
+            this.history = new Map<K, History<T, K>>();
+            this.action = -1;
         }
 
-        init() {
-            // member decorated with @UndoDoNotTrack should be ignored
-            if (!this.inited || this.disabled) {
-                const doNotTrack = (this.constructor as any).doNotTrack;
-                for (const [propKey, descriptor] of getAllPropertyNames(
-                    this.target
-                )) {
-                    if (
-                        !(
-                            descriptor.writable === false ||
-                            typeof descriptor.value === "function" ||
-                            [
-                                "constructor",
-                                "__proxyInternal__"
-                            ].indexOf(propKey) !== -1 ||
-                            doNotTrack.has(propKey)
-                        )
-                    ) {
-                        // if we reinitialize the value (for performance, we might stop watch a spliced array)
-                        if (this.history.has(propKey as any)) {
-                            this.history.get(propKey as any).set(descriptor.value);
-                        }
-                        else {
-                            this.history.set(
-                                propKey as any,
-                                new History<any>(
-                                    this.master,
-                                    descriptor.value
-                                )
-                            );
-                        }
-                    }
-                }
-                this.inited = true;
+        /**
+         * return true if data has change since last save
+         */
+        save(propKey: K): boolean {
+            const value: T[K] = this.target[propKey];
+            if (this.history.has(propKey)) {
+                return this.history.get(propKey).set(value);
+            }
+            else {
+                this.history.set(
+                    propKey,
+                    new History<T, K>(
+                        this.master,
+                        value
+                    )
+                );
+                return true;
             }
         }
+
+        load(propKey: K) {
+            const localHistory = this.history.get(propKey);
+            if (localHistory) {
+                const val = localHistory.get();
+                if (this.target[propKey] !== val) { // trick to avoid rewrite non writable property
+                    this.target[propKey] = val;
+                }
+            }
+            else {
+                delete this.target[propKey];
+            }
+        }
+
+        dispatchAndRecurse(propKey: K, v: Visitor): boolean {
+            let res = false;
+            if (v === Visitor.save) {
+                res = this.save(propKey) || res;
+            }
+            else if (v === Visitor.load) {
+                this.load(propKey);
+            }
+            // dispatch on key (example : object key of a map)
+            const key = propKey;
+            if (key && (key as any).__proxyInternal__) {
+                res = (key as any).__proxyInternal__.visit(v, this.master, this.action) || res;
+            }
+            const val = this.target[propKey];
+            if (val && (val as any).__proxyInternal__) {
+                res = (val as any).__proxyInternal__.visit(v, this.master, this.action) || res;
+            }
+            return res;
+        }
+
+        visit(v: Visitor, master: MasterIndex, action: number): boolean {
+            let res = false;
+            if (this.action === action) {
+                return false;
+            }
+            this.action = action;
+            if (this.master !== undefined && this.master !== master) {
+                throw Error("an object was affected to two UndoRedo");
+            }
+            this.master = master;
+
+            const memberDispatched = new Set<K>();
+            // member decorated with @UndoDoNotTrack should be ignored
+            const doNotTrack = (this.constructor as any).doNotTrack;
+            for (const [propKey, descriptor] of getAllPropertyNames<T, K>(this.target)) {
+                if (!(!descriptor.enumerable
+                    || descriptor.writable === false
+                    || typeof descriptor.value === "function"
+                    || propKey === "constructor"
+                    || propKey === "prototype"
+                    || doNotTrack.has(propKey))) {
+                    res = this.dispatchAndRecurse(propKey, v) || res;
+                    memberDispatched.add(propKey);
+                }
+            }
+
+            // static member
+            (this.constructor as any).nonEnumerables.forEach((nonEnumerable: any) => {
+                res = this.dispatchAndRecurse(nonEnumerable, v) || res;
+                memberDispatched.add(nonEnumerable);
+            });
+
+            // collection
+            if (this.target instanceof Map || this.target instanceof Set || this.target instanceof Array) {
+              [...(this.target as any).entries()].forEach(([key, val]) => {
+                    memberDispatched.add(key);
+                    res = this.dispatchAndRecurse(key, v) || res;
+                }
+              );
+            }
+
+            for (const [propKey, history] of this.history) {
+                if (!memberDispatched.has(propKey)) {
+                    res = this.dispatchAndRecurse(propKey, v) || res;
+                }
+            }
+            return res;
+        }
     }
-    proxyInternalClass.doNotTrack = doNotTrackMap.get(ctor) || new Set<Key>();
-    proxyInternalClass.initSkip = initSkipMap.get(ctor) || new Set<Key>();
+    proxyInternalClass.doNotTrack = doNotTrackMap.get(ctor) as Set<K> || new Set<K>();
     const descriptor = Object.getOwnPropertyDescriptor(
         proxyInternalClass,
-        "__proxyInternal__"
+        "name"
     ) || { writable: true };
     Object.defineProperty(proxyInternalClass, "name", {
         ...descriptor,
@@ -158,20 +180,20 @@ function proxyInternal<T extends Class<any>, K extends keyof T> (ctor: T) {
     return proxyInternalClass;
 }
 
-function wrapper <T extends Class<any>>(forceWatch: Key[], proxify: boolean) {
-    return (ctor: T) => {
-        const proxyInternalClass = proxyInternal(ctor);
+function wrapper <T extends Class<any>, K extends keyof T>(forceWatch: K[]) {
+    return (ctor: new(...args: any[]) => any) => {
+        const proxyInternalClass = proxyInternal<T, K>(ctor);
         // bug of typescript : can not extends abstract class from parameters
         const anonymousClass = class ProxyWrapper extends (ctor as any) {
             // tslint:disable-next-line:variable-name
-            __proxyInternal__: any;
+            __proxyInternal__: typeof proxyInternal;
             // tslint:disable-next-line:variable-name
-            static __proxyInternal__: any;
+            static __proxyInternal__: typeof proxyInternal;
 
             constructor(...args: any[]) {
                 super(...args);
-                const proxyInternalInstance = new (proxyInternalClass as any)();
-                proxyInternalInstance.target = this;
+                const proxyInternalInstance = new proxyInternalClass();
+                proxyInternalInstance.target = this as any;
                 const descriptor = Object.getOwnPropertyDescriptor(
                     this,
                     "__proxyInternal__"
@@ -181,29 +203,11 @@ function wrapper <T extends Class<any>>(forceWatch: Key[], proxify: boolean) {
                     enumerable: false,
                     value: proxyInternalInstance
                 });
-                if (proxify === true) {
-                    return new Proxy(this, proxyHandler(false)) as any;
-                }
             }
         };
 
         setForceWatch(anonymousClass, forceWatch);
-        proxyInternalClass.nonEnumerableWatch = getForceWatch(anonymousClass);
-
-        // look for the UndoInit decorator
-        let proto = ctor;
-        do {
-            if (initializationMap.has(proto)) {
-                const initMember = initializationMap.get(proto)
-                proxyInternalClass.initialization = Reflect.get(proto.prototype, initMember);
-                break;
-            }
-        } while (proto = Object.getPrototypeOf(proto));
-
-        // check that no parents is UndoableNoParent
-        if (proxify === true && (ctor as any).__NoParent__ === true) {
-            throw Error(`@UndoableNoParent is already applied in the prototype chain of ${ctor.name}`)
-        }
+        proxyInternalClass.nonEnumerables = getForceWatch(anonymousClass) as any;
 
         // static
         const proxyInternalInstance = new (proxyInternalClass as any)();
@@ -220,32 +224,17 @@ function wrapper <T extends Class<any>>(forceWatch: Key[], proxify: boolean) {
             enumerable: false,
             value: ctor
         });
-        Object.defineProperty(anonymousClass, "__NoParent__", {
-            enumerable: false,
-            value: true
-        });
-        return new Proxy(anonymousClass, proxyHandler(true)) as any;
+
+        return anonymousClass;
     }
 }
 
 /**
- * class decorator that must decorate the top most class
- * (more precisely, it should appear only once in the prototype chain of an object)
- * Don't decorate a class with both @Undoable and @Undoable
- * @param forceWatch array of non enumerable member to watch
- */
-export function UndoableNoParent(
-    forceWatch: Key[] = []
-) {
-    return wrapper(forceWatch, true);
-}
-/**
  * class decorator that replace the class and return a proxy around it
- * Don't decorate a class with both @Undoable and @Undoable
  * @param forceWatch array of non enumerable member to watch
  */
 export function Undoable(
     forceWatch: Key[] = []
 ) {
-    return wrapper(forceWatch, false);
+    return wrapper(forceWatch as any) as any;
 }

@@ -1,4 +1,4 @@
-import { Undoable, UndoInit, UndoableNoParent, UndoRedo, UndoDoNotTrack } from "../src/index";
+import { Undoable, UndoDoNotTrack, UndoRedo } from "../src/index";
 import { is_constructor } from "../src/utils";
 
 describe("decorator", () => {
@@ -16,7 +16,7 @@ describe("decorator", () => {
     }
 
     @saveClass
-    @UndoableNoParent()
+    @Undoable()
     class Foo {
         constructor(public name: string) {}
 
@@ -43,7 +43,7 @@ describe("decorator", () => {
     });
 
     test("nonEnumerable", () => {
-        @UndoableNoParent(["A"])
+        @Undoable(["A"])
         class A {}
         @Undoable(["B"])
         class B extends A {}
@@ -51,16 +51,16 @@ describe("decorator", () => {
         class C extends B {}
         @Undoable(["D"])
         class D extends A {}
-        expect(((new A()) as any).__proxyInternal__.constructor.nonEnumerableWatch).toEqual(["A"]);
-        expect(((new B()) as any).__proxyInternal__.constructor.nonEnumerableWatch).toEqual(["B", "A"]);
-        expect(((new C()) as any).__proxyInternal__.constructor.nonEnumerableWatch).toEqual(["C", "B", "A"]);
-        expect(((new D()) as any).__proxyInternal__.constructor.nonEnumerableWatch).toEqual(["D", "A"]);
+        expect(((new A()) as any).__proxyInternal__.constructor.nonEnumerables).toEqual(["A"]);
+        expect(((new B()) as any).__proxyInternal__.constructor.nonEnumerables).toEqual(["B", "A"]);
+        expect(((new C()) as any).__proxyInternal__.constructor.nonEnumerables).toEqual(["C", "B", "A"]);
+        expect(((new D()) as any).__proxyInternal__.constructor.nonEnumerables).toEqual(["D", "A"]);
     });
 
     describe("factory and initialization", () => {
         enum Value { default, constructor, initialization };
         test("default", () => {
-            @UndoableNoParent()
+            @Undoable()
             class Test {
                 member = Value.default;
                 constructor(init = true) {
@@ -76,7 +76,7 @@ describe("decorator", () => {
         });
 
         test("constructor", () => {
-            @UndoableNoParent()
+            @Undoable()
             class Test {
                 member = Value.default;
                 constructor(init = true) {
@@ -92,7 +92,7 @@ describe("decorator", () => {
         });
 
         test("do not track", () => {
-            @UndoableNoParent()
+            @Undoable()
             class MotherTest {
                 @UndoDoNotTrack
                 motherDNT: Number;
@@ -119,6 +119,7 @@ describe("decorator", () => {
             childTest.motherDNT = 15;
             childTest.childDNT = 44;
             childTest.childDoTrack = 19;
+            ud.save();
             expect(childTest.motherDNT).toEqual(15);
             expect(childTest.childDNT).toEqual(44);
             expect(childTest.childDoTrack).toEqual(19);
@@ -126,44 +127,6 @@ describe("decorator", () => {
             expect(childTest.motherDNT).toEqual(15);
             expect(childTest.childDNT).toEqual(44);
             expect(childTest.childDoTrack).toEqual(18);
-        });
-
-        describe("initialization", () => {
-            test("simple", () => {
-                @UndoableNoParent()
-                class Test {
-                    member = Value.default;
-                    constructor(init = true) {
-                        if (init) {
-                            this.member = Value.constructor;
-                        }
-                    }
-                    @UndoInit
-                    init() {
-                        this.member = Value.initialization;
-                    }
-                }
-                expect(new Test().member).toEqual(Value.initialization);
-            });
-
-            test("inheritance", () => {
-                @UndoableNoParent()
-                class Mother {
-                    member = 1;
-                    @UndoInit
-                    initM() {
-                        this.member += 3;
-                    }
-                }
-                @Undoable()
-                class Child  extends Mother {
-                    @UndoInit
-                    initC() {
-                        this.member *= 2;
-                    }
-                }
-                expect(new Child().member).toEqual(8);
-            });
         });
     });
 });

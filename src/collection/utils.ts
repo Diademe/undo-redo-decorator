@@ -1,5 +1,5 @@
 "use strict";
-import { UndoableNoParent } from "../annotation";
+import { Undoable } from "../annotation";
 
 // tslint:disable:no-null-keyword
 export enum Flag {
@@ -88,7 +88,7 @@ interface PrimitiveStorageInterface<E> {
     [ key: string ]: E;
 }
 
-@UndoableNoParent()
+@Undoable()
 class ObjectStorage<E> extends Array<E> {
     constructor(...args: any[]) {
         super(...args);
@@ -100,7 +100,7 @@ export interface Storage<E> {
     objects: ObjectStorage<E>;
 }
 
-@UndoableNoParent()
+@Undoable()
 class PrimitivesStorage<E> extends null {
     [ key: number ]: E;
     [ key: string ]: E;
@@ -109,7 +109,7 @@ class PrimitivesStorage<E> extends null {
     }
 }
 // to make jest happy (this used without calling super while extending null)
-@UndoableNoParent(["primitives", "objects"])
+@Undoable(["primitives", "objects"])
 export class InternalStorage<E> extends null {
     primitives: PrimitiveStorageInterface<E>;
     objects: ObjectStorage<E>;

@@ -1,49 +1,60 @@
-import { MasterIndex, __initialization__ } from "./core";
+import { MasterIndex } from "./core";
+import { Visitor } from "./type";
 
-export { Undoable, UndoInit, UndoableNoParent, UndoDoNotTrack } from "./annotation";
+export { Undoable, UndoDoNotTrack } from "./annotation";
 export { Map } from "./collection/map";
 export { Set } from "./collection/set";
 
 export class UndoRedo {
     private index: MasterIndex;
-    private inited = false;
+    private ignited = false;
+    private watchables: any[] = [];
+    private action = 0;
     constructor(watchable?: any) {
         this.index = new MasterIndex();
         if (watchable) {
-            this.internalAdd(watchable);
             this.index.save();
-            this.inited = true;
+            this.internalAdd(watchable);
+            this.ignited = true;
         }
     }
 
     private internalAdd(watchable?: any) {
         if (watchable && (watchable as any).__proxyInternal__) {
-            __initialization__(watchable, this.index);
+            this.watchables.push(watchable);
+            watchable.__proxyInternal__.visit(Visitor.save, this.index, this.action++);
         }
         else {
-            throw Error(`${watchable} is not decorated with @UndoableNoParent() or @Undoable()`);
+            throw Error(`${watchable} is not decorated with @Undoable()`);
         }
     }
 
     add(watchable?: any) {
-        this.internalAdd(watchable);
         this.index.save();
-        this.inited = true;
+        this.internalAdd(watchable);
+        this.ignited = true;
     }
 
     multiAdd(watchables: any[]) {
+        this.index.save();
         for (const watchable of watchables) {
             this.internalAdd(watchable)
         }
-        this.index.save();
-        this.inited = true;
+        this.ignited = true;
     }
+
     /**
      * save: the current state is saved
-     * return true if there was something to save
      */
-    public save(): boolean {
-        return this.index.save();
+    public save(): void {
+        this.index.save();
+        let saved = false; // saved === true if some data has changed
+        for (const watchable of this.watchables) {
+            saved = watchable.__proxyInternal__.visit(Visitor.save, this.index, this.action++) || saved;
+        }
+        if (saved === false) { // cancel the increment of index to avoid empty save
+            this.index.undo();
+        }
     }
 
     /**
@@ -51,8 +62,11 @@ export class UndoRedo {
      * @param index to which state do you want to go (default : last saved state)
      */
     public undo(index?: number) {
-        if (this.inited) {
-            this.index.undo(index ? index + 1 : index);
+        if (this.ignited) {
+            this.index.undo(index !== undefined ? index + 1 : index);
+            for (const watchable of this.watchables) {
+                watchable.__proxyInternal__.visit(Visitor.load, this.index, this.action++);
+            }
         }
     }
 
@@ -61,24 +75,31 @@ export class UndoRedo {
      * @param index to which state do you want to go (default : last saved state)
      */
     public redo(index?: number): void {
-        if (this.inited) {
-            this.index.redo(index ? index + 1 : index);
+        if (this.ignited) {
+            this.index.redo(index !== undefined ? index + 1 : index);
+            for (const watchable of this.watchables) {
+                watchable.__proxyInternal__.visit(Visitor.load, this.index, this.action++);
+            }
         }
     }
 
+    public clearRedo() {
+        this.index.clearRedo();
+    }
+
     public getCurrentIndex(): number {
-        return this.inited ? this.index.getCurrentIndex() - 1 : undefined;
+        return this.ignited ? this.index.getCurrentIndex() - 1 : undefined;
     }
 
     public undoPossible() {
-        if (this.inited) {
+        if (this.ignited) {
             return this.index.getCurrentIndex() > 1;
         }
         return false;
     }
 
     public redoPossible() {
-        return this.inited ? this.index.redoPossible() : false;
+        return this.ignited ? this.index.redoPossible() : false;
     }
 
     public maxRedoPossible() {

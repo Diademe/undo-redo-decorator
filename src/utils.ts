@@ -11,8 +11,8 @@ export function is_constructor(f: any) {
     return true;
 }
 
-export function getAllPropertyNames<T>(obj: T) {
-    const props: [string, PropertyDescriptor][] = [];
+export function getAllPropertyNames<T, K extends keyof T>(obj: T) {
+    const props: [K, PropertyDescriptor][] = [];
     do {
         Object.getOwnPropertyNames(obj).forEach(prop => {
             const propertyDescriptor = Object.getOwnPropertyDescriptor(
@@ -25,17 +25,14 @@ export function getAllPropertyNames<T>(obj: T) {
                     return prop2 === prop;
                 }) === -1
             ) {
-                props.push([prop, propertyDescriptor]);
+                props.push([prop as K, propertyDescriptor]);
             }
         });
     } while ((obj = Object.getPrototypeOf(obj)));
     return props;
 }
 
-export function getInheritedPropertyDescriptor<
-    T extends Object,
-    K extends keyof T
->(object: T, propKey: K) {
+export function getInheritedPropertyDescriptor<T, K extends keyof T> (object: T, propKey: K) {
     let descriptor;
     let obj = object;
     do {
@@ -44,23 +41,6 @@ export function getInheritedPropertyDescriptor<
     } while (descriptor === undefined && obj !== null);
     return descriptor;
 }
-
-// decorator to set a member as non enumerable
-export function notEnumerable(target: any, propertyKey: string) {
-    const descriptor = Object.getOwnPropertyDescriptor(target, propertyKey) || {
-        writable: true
-    };
-    Object.defineProperty(target, propertyKey, {
-        ...descriptor,
-        enumerable: false
-    });
-}
-
-// associate class to function name to be called after creation
-export const initializationMap = new Map<any, Key>();
-
-// associate class to function name to be called after creation
-export const initSkipMap = new Map<any, Set<Key>>();
 
 // associate class to function name to be called after creation
 export const doNotTrackMap = new Map<any, Set<Key>>();

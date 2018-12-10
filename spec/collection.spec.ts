@@ -1,6 +1,6 @@
 import { Map } from "../src/collection/map";
 import { Set } from "../src/collection/set";
-import { Undoable, UndoRedo, UndoableNoParent } from "../src";
+import { Undoable, UndoRedo } from "../src";
 
 @Undoable()
 class CustomMap<K, V> extends Map<K, V> {
@@ -33,7 +33,7 @@ function isIterable(obj: any) {
     return typeof obj[Symbol.iterator] === "function";
 }
 
-@UndoableNoParent()
+@Undoable()
 class CustomArray extends Array {
     constructor(args?: any[]) {
         super();
@@ -63,6 +63,7 @@ describe("immutable", () => {
                 expect(Array.from(x.values())).toEqual([1, 2, 3]);
                 x.add(4);
                 expect(Array.from(x.values())).toEqual([1, 2, 3, 4]);
+                ud.save();
                 ud.undo();
                 expect(Array.from(x.values())).toEqual([1, 2, 3]);
             });
@@ -97,6 +98,7 @@ describe("immutable", () => {
             test("undoable", () => {
                 x.delete(3);
                 expect(Array.from(x.entries())).toEqual([[1, "1"], [2, "2"]]);
+                ud.save();
                 ud.undo();
                 expect(Array.from(x.entries())).toEqual([[1, "1"], [2, "2"], [3, "3"]]);
             });
@@ -167,6 +169,10 @@ describe("immutable", () => {
                 expect(x.length).toEqual(3);
                 x.pop()
                 expect(x.length).toEqual(2);
+                ud.save();
+                ud.save();
+                ud.save();
+
                 ud.undo();
                 expect(x.length).toEqual(3);
             });

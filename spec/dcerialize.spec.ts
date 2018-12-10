@@ -8,17 +8,17 @@ import {
     RuntimeTypingSetTypeString,
     RuntimeTypingSetEnable
 } from "dcerialize";
-import { Undoable, UndoableNoParent } from "../src";
+import { Undoable } from "../src";
 
 describe("Dcerialize", () => {
     test("serialization", () => {
-        @UndoableNoParent()
+        @Undoable()
         class MemberTest {
             @serializeAs(() => Number)
             public member0 = 1;
         }
 
-        @UndoableNoParent()
+        @Undoable()
         class Test {
             @serializeAs(() => String)
             public value0 = "strvalue";
@@ -42,13 +42,13 @@ describe("Dcerialize", () => {
     });
 
     test("deserialization", () => {
-        @UndoableNoParent()
+        @Undoable()
         class MemberTest {
             @deserializeAs(() => Number)
             public member0 = 1;
         }
 
-        @UndoableNoParent()
+        @Undoable()
         class Test {
             @deserializeAs(() => String)
             public value0 = "strvalue";
@@ -81,7 +81,7 @@ describe("Dcerialize", () => {
     });
 
     test("inheritance deserialization", () => {
-        @UndoableNoParent()
+        @Undoable()
         class Test {
             @deserializeAs(() => String)
             public value0 = "strvalue";
@@ -116,12 +116,12 @@ describe("Dcerialize", () => {
     });
 
     test("runtime typing", () => {
-        @UndoableNoParent()
+        @Undoable()
         class Test0 {
             @deserializeAs(() => Boolean)
             public valueA = true;
         }
-        @UndoableNoParent()
+        @Undoable()
         class Test1 {
             @deserializeAs(() => Boolean)
             public valueB = true;
@@ -129,7 +129,7 @@ describe("Dcerialize", () => {
         @inheritSerialization(() => Test1)
         @Undoable()
         class Test2 extends Test1 {}
-        @UndoableNoParent()
+        @Undoable()
         class Test3 {
             @deserializeAs(() => Object)
             public m1: Test0;

@@ -1,6 +1,6 @@
 import { MasterIndex } from "../src/core";
 import { Index, SuperArray } from "../src/type";
-import { UndoRedo, Undoable, UndoableNoParent } from "../src";
+import { UndoRedo, Undoable } from "../src";
 
 describe("core", () => {
     describe("Index", () => {
@@ -70,32 +70,14 @@ describe("core", () => {
             });
 
             test("initial state : nothing possible", () => {
-                expect(m.undoPossible()).toBe(false);
                 expect(m.redoPossible()).toBe(false);
                 expect(m.getCurrentIndex()).toBe(0);
             });
 
-            test("save when noting has been recorded", () => {
-                m.set(h, 1);
-                m.save();
-                expect(m.getCurrentIndex()).toBe(1);
-                m.save();
-                expect(m.getCurrentIndex()).toBe(1);
-            });
-
-            test("record the same object doesn't do anything", () => {
-                m.set(h, 1);
-                m.save();
-                expect(m.getCurrentIndex()).toBe(1);
-                m.set(h, 1);
-                m.save();
-                expect(m.getCurrentIndex()).toBe(1);
-            });
-
             test("invalid undo parameter", () => {
-                m.set(h, 1);
+                m.set<Number, any>(h, 1);
                 m.save();
-                m.set(h, 2);
+                m.set<Number, any>(h, 2);
                 expect(() => m.undo(-1)).toThrow();
                 expect(() => m.undo(1)).not.toThrow();
                 expect(() => m.undo(2)).toThrow();
@@ -103,9 +85,9 @@ describe("core", () => {
             });
 
             test("invalid redo parameter", () => {
-                m.set(h, 1);
+                m.set<Number, any>(h, 1);
                 m.save();
-                m.set(h, 2);
+                m.set<Number, any>(h, 2);
                 expect(() => m.redo(0)).toThrow();
                 expect(() => m.redo(1)).toThrow();
                 expect(() => m.redo(2)).toThrow();
@@ -116,7 +98,7 @@ describe("core", () => {
 
             test("redo", () => {
                 expect(m.redoPossible()).toBe(false);
-                m.set(h, 1);
+                m.set<Number, any>(h, 1);
                 m.save();
                 expect(m.redoPossible()).toBe(false);
                 expect(m.getCurrentIndex()).toBe(1);
@@ -129,9 +111,9 @@ describe("core", () => {
 
             test("maxRedoPossible", () => {
                 expect(m.maxRedoPossible()).toBe(0);
-                m.set(h, 1);
+                m.set<Number, any>(h, 1);
                 m.save();
-                m.set(h, 2);
+                m.set<Number, any>(h, 2);
                 m.save();
 
                 m.undo();
@@ -143,119 +125,36 @@ describe("core", () => {
                 m.redo();
                 expect(m.maxRedoPossible()).toBe(1);
             });
-
-            test("undo", () => {
-                expect(m.undoPossible()).toBe(false);
-                m.set(h, 1);
-                expect(m.undoPossible()).toBe(true);
-                m.save();
-                expect(m.undoPossible()).toBe(true);
-                expect(m.getCurrentIndex()).toBe(1);
-                m.undo();
-                expect(m.undoPossible()).toBe(false);
-                expect(m.redoPossible()).toBe(true);
-                m.redo();
-                expect(m.undoPossible()).toBe(true);
-            });
         });
 
-        test("getCurrentIndex", () => {
-            const m = new MasterIndex();
-            const h = new SuperArray<[Index, number]>();
-            expect(m.undoPossible()).toBe(false);
-            expect(m.getCurrentIndex()).toBe(0);
-            m.set(h, 1);
-            m.save();
-            m.set(h, 1);
-            m.save();
-            expect(m.getCurrentIndex()).toBe(1);
-            m.set(h, 1);
-            m.save();
-            m.set(h, 1);
-            m.save();
-            m.set(h, 1);
-            m.save();
-            expect(m.getCurrentIndex()).toBe(1);
-            m.undo(0);
-            expect(m.getCurrentIndex()).toBe(0);
-        });
 
         test("undo | redo", () => {
             const m = new MasterIndex();
             const h = new SuperArray<[Index, number]>();
             expect(m.getCurrentIndex()).toBe(0);
-            m.set(h, 0);
-            expect(h).toEqual([[new Index(1, 0), 0]]);
+            m.set<Number, any>(h, 0);
             m.save();
-            expect(m.getCurrentIndex()).toBe(1);
+            expect(h).toEqual([[new Index(0, 0), 0]]);
 
-            m.set(h, 1);
-            expect(m.getCurrentIndex()).toBe(2);
-            expect(h).toEqual([[new Index(1, 0), 0], [new Index(2, 0), 1]]);
+            m.set<Number, any>(h, 1);
             m.save();
             expect(m.getCurrentIndex()).toBe(2);
 
-            m.undo();
-
-            m.set(h, 2);
-            expect(h).toEqual([[new Index(1, 0), 0], [new Index(2, 1), 2]]);
             m.save();
-            expect(m.getCurrentIndex()).toBe(2);
-
-            m.set(h, 3);
-            expect(h).toEqual([
-                [new Index(1, 0), 0],
-                [new Index(2, 1), 2],
-                [new Index(3, 1), 3]
-            ]);
-            m.save();
-            expect(m.getCurrentIndex()).toBe(3);
-
-            m.set(h, 4);
-            expect(h).toEqual([
-                [new Index(1, 0), 0],
-                [new Index(2, 1), 2],
-                [new Index(3, 1), 3],
-                [new Index(4, 1), 4]
-            ]);
+            expect(h).toEqual([[new Index(0, 0), 0], [new Index(1, 0), 1]]);
             m.save();
             expect(m.getCurrentIndex()).toBe(4);
 
-            m.undo();
-
-            m.set(h, 5);
-            expect(h).toEqual([
-                [new Index(1, 0), 0],
-                [new Index(2, 1), 2],
-                [new Index(3, 1), 3],
-                [new Index(4, 2), 5]
-            ]);
+            m.undo(1);
+            m.clearRedo();
+            m.set<Number, any>(h, 2);
             m.save();
-            expect(m.getCurrentIndex()).toBe(4);
-
-            m.undo(2);
-
-            m.set(h, 6);
-            expect(h).toEqual([
-                [new Index(1, 0), 0],
-                [new Index(2, 1), 2],
-                [new Index(3, 3), 6]
-            ]);
-            m.save();
-            expect(m.getCurrentIndex()).toBe(3);
-
-            m.undo(0);
-            m.redo(1);
-
-            m.set(h, 7);
-            expect(h).toEqual([[new Index(1, 0), 0], [new Index(2, 4), 7]]);
-            m.save();
-            expect(m.getCurrentIndex()).toBe(2);
+            expect(h).toEqual([[new Index(0, 0), 0], [new Index(1, 1), 2]]);
         });
     });
 
     describe("getter setter", () => {
-        @UndoableNoParent()
+        @Undoable()
         class GetterSetter {
             private _member: number;
             set SGMember(val: number) {

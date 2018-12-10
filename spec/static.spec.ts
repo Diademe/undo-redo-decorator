@@ -1,25 +1,9 @@
-import { Undoable, UndoRedo, UndoableNoParent } from "../src/index";
+import { Undoable, UndoRedo } from "../src/index";
 
 describe("static", () => {
     /* Attention, Class history are not reinitialized between test */
     test("static inheritance", () => {
-        @UndoableNoParent()
-        class A {
-            static st = 1;
-        }
-
         @Undoable()
-        class B extends A {
-            static st1 = 1;
-        }
-        const ud = new UndoRedo();
-        ud.multiAdd([A, B])
-        expect(Object.keys(A)).toEqual(["st"]);
-        expect(Object.keys(B)).toEqual(["st1"]);
-    });
-
-    test("static inheritance", () => {
-        @UndoableNoParent()
         class A {
             static st = 1;
             static sta = "A";
@@ -38,6 +22,7 @@ describe("static", () => {
         expect((A as any).stb).toBeUndefined();
         expect(B.sta).toBeDefined();
         A.st = 2;
+        ud.save();
         expect(ud.getCurrentIndex()).toBe(1);
         expect(A.st).toBe(2);
         expect(B.st).toBe(1);
@@ -47,6 +32,7 @@ describe("static", () => {
         expect(A.st).toBe(1);
 
         B.st = 3;
+        ud.save();
         expect(ud.redoPossible()).toBe(false);
         expect(A.st).toBe(1);
         expect(B.st).toBe(3);

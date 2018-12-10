@@ -1,4 +1,4 @@
-import { Undoable, UndoableNoParent } from "../src/index";
+import { Undoable } from "../src/index";
 import { is_constructor, getInheritedPropertyDescriptor } from "../src/utils";
 
 describe("utils", () => {
@@ -11,7 +11,7 @@ describe("utils", () => {
         };
     }
 
-    @UndoableNoParent()
+    @Undoable()
     class Annotated {
         motherName: string;
         nonStatic: string;

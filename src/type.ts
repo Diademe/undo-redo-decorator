@@ -21,6 +21,8 @@ export class Index {
     }
 }
 
+export enum Visitor { save, load };
+
 export class SuperArray<T> extends Array<T> {
     constructor() {
         super();

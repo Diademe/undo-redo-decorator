@@ -1,7 +1,7 @@
-import { Undoable, UndoRedo, UndoableNoParent } from "../src/index";
+import { Undoable, UndoRedo } from "../src/index";
 
 describe("hesitance", () => {
-    @UndoableNoParent()
+    @Undoable()
     class Mother {
         motherName: string;
         nonStatic: string;
@@ -44,7 +44,7 @@ describe("hesitance", () => {
     });
 
     test("Register", () => {
-        @UndoableNoParent()
+        @Undoable()
         class MotherRegister {
             constructor(private ud: UndoRedo) { }
             onInit() {
@@ -63,6 +63,7 @@ describe("hesitance", () => {
         const child = new ChildRegister(ud);
         child.onInit();
         child.childMember = 3;
+        ud.save();
         expect(child.childMember).toBe(3);
         ud.undo();
         expect(child.childMember).toBe(2);
@@ -98,7 +99,7 @@ describe("hesitance with only child decorated by Undoable", () => {
             }
             motherMember = 1;
         }
-        @UndoableNoParent()
+        @Undoable()
         class ChildRegister extends MotherRegister {
             constructor(arg: UndoRedo) {
                 super(arg);
@@ -109,6 +110,7 @@ describe("hesitance with only child decorated by Undoable", () => {
         const child = new ChildRegister(ud);
         child.onInit();
         child.childMember = 3;
+        ud.save();
         expect(child.childMember).toBe(3);
         ud.undo();
         expect(child.childMember).toBe(2);
@@ -125,7 +127,7 @@ describe("hesitance with only child decorated by Undoable", () => {
         static staticOverridden = 1;
     }
 
-    @UndoableNoParent()
+    @Undoable()
     class Child extends Mother {
         childName: string;
         nonStatic: string;
@@ -152,6 +154,7 @@ describe("hesitance with only child decorated by Undoable", () => {
         Child.motherStatic = 3;
         Child.childStatic = 3;
         Child.staticOverridden = 3;
+        ud.save();
         expect(Child.motherStatic).toBe(3);
         expect(Child.childStatic).toBe(3);
         expect(Child.staticOverridden).toBe(3);
