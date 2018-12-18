@@ -2,24 +2,6 @@ export type Key = string | number | symbol;
 type Abstract<T> = Function & {prototype: T};
 type Constructor<T> = new (...args: any[]) => T;
 export type Class<T> = Abstract<T> | Constructor<T>;
-export class Index {
-    constructor(public indexVersion: number, public redoVersion: number) {}
-    /**
-     * this.before(that)
-     *   -1 if this before that
-     *   0 if this == that
-     *   1 if this after that
-     */
-    public before(that: Index): number {
-        if (this.redoVersion < that.redoVersion) {
-            return -1;
-        }
-        if (this.redoVersion === that.redoVersion) {
-            return this.indexVersion - that.indexVersion;
-        }
-        return 1;
-    }
-}
 
 export enum Visitor { save, load };
 

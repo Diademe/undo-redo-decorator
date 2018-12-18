@@ -68,10 +68,10 @@ function proxyInternal<T extends Class<any>, K extends keyof T> (ctor: new(...ar
         /**
          * return true if data has change since last save
          */
-        save(propKey: K): boolean {
+        save(propKey: K): void {
             const value: T[K] = this.target[propKey];
             if (this.history.has(propKey)) {
-                return this.history.get(propKey).set(value);
+                this.history.get(propKey).set(value);
             }
             else {
                 this.history.set(
@@ -81,7 +81,6 @@ function proxyInternal<T extends Class<any>, K extends keyof T> (ctor: new(...ar
                         value
                     )
                 );
-                return true;
             }
         }
 
@@ -98,10 +97,9 @@ function proxyInternal<T extends Class<any>, K extends keyof T> (ctor: new(...ar
             }
         }
 
-        dispatchAndRecurse(propKey: K, v: Visitor): boolean {
-            let res = false;
+        dispatchAndRecurse(propKey: K, v: Visitor): void {
             if (v === Visitor.save) {
-                res = this.save(propKey) || res;
+                this.save(propKey);
             }
             else if (v === Visitor.load) {
                 this.load(propKey);
@@ -109,19 +107,17 @@ function proxyInternal<T extends Class<any>, K extends keyof T> (ctor: new(...ar
             // dispatch on key (example : object key of a map)
             const key = propKey;
             if (key && (key as any).__proxyInternal__) {
-                res = (key as any).__proxyInternal__.visit(v, this.master, this.action) || res;
+                (key as any).__proxyInternal__.visit(v, this.master, this.action);
             }
             const val = this.target[propKey];
             if (val && (val as any).__proxyInternal__) {
-                res = (val as any).__proxyInternal__.visit(v, this.master, this.action) || res;
+                (val as any).__proxyInternal__.visit(v, this.master, this.action);
             }
-            return res;
         }
 
-        visit(v: Visitor, master: MasterIndex, action: number): boolean {
-            let res = false;
+        visit(v: Visitor, master: MasterIndex, action: number): void {
             if (this.action === action) {
-                return false;
+                return;
             }
             this.action = action;
             if (this.master !== undefined && this.master !== master) {
@@ -139,14 +135,14 @@ function proxyInternal<T extends Class<any>, K extends keyof T> (ctor: new(...ar
                     || propKey === "constructor"
                     || propKey === "prototype"
                     || doNotTrack.has(propKey))) {
-                    res = this.dispatchAndRecurse(propKey, v) || res;
+                    this.dispatchAndRecurse(propKey, v);
                     memberDispatched.add(propKey);
                 }
             }
 
             // static member
             (this.constructor as any).nonEnumerables.forEach((nonEnumerable: any) => {
-                res = this.dispatchAndRecurse(nonEnumerable, v) || res;
+                this.dispatchAndRecurse(nonEnumerable, v);
                 memberDispatched.add(nonEnumerable);
             });
 
@@ -154,17 +150,16 @@ function proxyInternal<T extends Class<any>, K extends keyof T> (ctor: new(...ar
             if (this.target instanceof Map || this.target instanceof Set || this.target instanceof Array) {
               [...(this.target as any).entries()].forEach(([key, val]) => {
                     memberDispatched.add(key);
-                    res = this.dispatchAndRecurse(key, v) || res;
+                    this.dispatchAndRecurse(key, v);
                 }
               );
             }
 
             for (const [propKey, history] of this.history) {
                 if (!memberDispatched.has(propKey)) {
-                    res = this.dispatchAndRecurse(propKey, v) || res;
+                    this.dispatchAndRecurse(propKey, v);
                 }
             }
-            return res;
         }
     }
     proxyInternalClass.doNotTrack = doNotTrackMap.get(ctor) as Set<K> || new Set<K>();
