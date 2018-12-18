@@ -1,22 +1,8 @@
 import { MasterIndex } from "../src/core";
-import { Index, SuperArray } from "../src/type";
+import { SuperArray } from "../src/type";
 import { UndoRedo, Undoable } from "../src";
 
 describe("core", () => {
-    describe("Index", () => {
-        test("compare", () => {
-            const a = new Index(0, 1);
-            const b = new Index(1, 0);
-            const c = new Index(1, 1);
-            const d = new Index(1, 1);
-            const e = new Index(1, 2);
-            expect(a.before(b)).toBe(1);
-            expect(a.before(c)).toBe(-1);
-            expect(c.before(d)).toBe(0);
-            expect(e.before(c)).toBe(1);
-        });
-    });
-
     describe("SuperArray", () => {
         let val: number[];
         let a: SuperArray<number[]>;
@@ -61,22 +47,23 @@ describe("core", () => {
     describe("MasterIndex", () => {
         describe("[undo | redo] Possible", () => {
             let m: MasterIndex;
-            let h: SuperArray<[Index, number]>;
+            let h: SuperArray<[number, number]>;
             // initial state: nothing in history,
 
             beforeEach(() => {
                 m = new MasterIndex();
-                h = new SuperArray<[Index, number]>();
+                h = new SuperArray<[number, number]>();
             });
 
             test("initial state : nothing possible", () => {
                 expect(m.redoPossible()).toBe(false);
-                expect(m.getCurrentIndex()).toBe(0);
+                expect(m.getCurrentIndex()).toBe(-1);
             });
 
             test("invalid undo parameter", () => {
+                m.saveInit()
                 m.set<Number, any>(h, 1);
-                m.save();
+                m.saveInit()
                 m.set<Number, any>(h, 2);
                 expect(() => m.undo(-1)).toThrow();
                 expect(() => m.undo(1)).not.toThrow();
@@ -85,8 +72,9 @@ describe("core", () => {
             });
 
             test("invalid redo parameter", () => {
+                m.saveInit();
                 m.set<Number, any>(h, 1);
-                m.save();
+                m.saveInit();
                 m.set<Number, any>(h, 2);
                 expect(() => m.redo(0)).toThrow();
                 expect(() => m.redo(1)).toThrow();
@@ -96,12 +84,14 @@ describe("core", () => {
                 expect(() => m.redo()).not.toThrow();
             });
 
-            test("redo", () => {
+            test("redoPossible", () => {
                 expect(m.redoPossible()).toBe(false);
+                m.saveInit();
                 m.set<Number, any>(h, 1);
-                m.save();
                 expect(m.redoPossible()).toBe(false);
-                expect(m.getCurrentIndex()).toBe(1);
+                expect(m.getCurrentIndex()).toBe(0);
+                m.saveInit();
+                m.set<Number, any>(h, 2);
                 expect(m.redoPossible()).toBe(false);
                 m.undo();
                 expect(m.redoPossible()).toBe(true);
@@ -111,45 +101,45 @@ describe("core", () => {
 
             test("maxRedoPossible", () => {
                 expect(m.maxRedoPossible()).toBe(0);
+                m.saveInit();
                 m.set<Number, any>(h, 1);
-                m.save();
+                expect(m.maxRedoPossible()).toBe(0);
+                m.saveInit();
                 m.set<Number, any>(h, 2);
-                m.save();
+                expect(m.maxRedoPossible()).toBe(0);
 
                 m.undo();
                 expect(m.maxRedoPossible()).toBe(1);
-
-                m.undo();
-                expect(m.maxRedoPossible()).toBe(2);
 
                 m.redo();
-                expect(m.maxRedoPossible()).toBe(1);
+                expect(m.maxRedoPossible()).toBe(0);
             });
         });
 
 
         test("undo | redo", () => {
             const m = new MasterIndex();
-            const h = new SuperArray<[Index, number]>();
-            expect(m.getCurrentIndex()).toBe(0);
+            const h = new SuperArray<[number, number]>();
+            expect(m.getCurrentIndex()).toBe(-1);
+            m.saveInit();
             m.set<Number, any>(h, 0);
-            m.save();
-            expect(h).toEqual([[new Index(0, 0), 0]]);
+            expect(h).toEqual([[0, 0]]);
 
+            m.saveInit();
             m.set<Number, any>(h, 1);
-            m.save();
-            expect(m.getCurrentIndex()).toBe(2);
+            expect(m.getCurrentIndex()).toBe(1);
 
-            m.save();
-            expect(h).toEqual([[new Index(0, 0), 0], [new Index(1, 0), 1]]);
-            m.save();
-            expect(m.getCurrentIndex()).toBe(4);
+            expect(h).toEqual([[0, 0], [1, 1]]);
 
-            m.undo(1);
-            m.clearRedo();
+            m.undo(0);
+            m.saveInit();
+            m.set<Number, any>(h, 3);
+
+            expect(h).toEqual([[0, 0], [1, 3]]);
+
+            m.saveInit();
             m.set<Number, any>(h, 2);
-            m.save();
-            expect(h).toEqual([[new Index(0, 0), 0], [new Index(1, 1), 2]]);
+            expect(h).toEqual([[0, 0], [1, 3], [2, 2]]);
         });
     });
 
@@ -182,7 +172,9 @@ describe("core", () => {
         test("get set", () => {
             expect(getSet.SGMember).toBeNaN();
             getSet.SGMember = 1;
+            ud.save()
             expect(getSet.SGMember).toBe(2);
+            expect(ud.getCurrentIndex()).toBe(1);
             ud.undo();
             expect(getSet.SGMember).toBeNaN();
         });

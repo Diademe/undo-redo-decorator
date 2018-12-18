@@ -54,15 +54,20 @@ describe("[undo | redo] Possible", () => {
 
     test("undo | redo", () => {
         expect(ud.getCurrentIndex()).toBe(0);
+        expect(obj.a).toBe(1);
         obj.a = 1
         ud.save();
+        expect(obj.a).toBe(1);
         expect(ud.getCurrentIndex()).toBe(0);
 
         obj.a = 2
+        expect(obj.a).toBe(2);
         ud.save();
+        expect(obj.a).toBe(2);
         expect(ud.getCurrentIndex()).toBe(1);
 
         ud.undo();
+        expect(obj.a).toBe(1);
         expect(ud.getCurrentIndex()).toBe(0);
         expect(obj).toEqual(new Obj(1));
 
