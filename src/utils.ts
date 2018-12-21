@@ -13,6 +13,10 @@ export function is_constructor(f: any) {
 
 export const notDefined = {};
 
+export function equality(a: any, b: any): boolean {
+    return a === b || (Number.isNaN(a) === true && Number.isNaN(b) === true);
+}
+
 export function getAllPropertyNames<T, K extends keyof T>(obj: T) {
     const props: [K, PropertyDescriptor][] = [];
     do {

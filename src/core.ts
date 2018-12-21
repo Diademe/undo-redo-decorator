@@ -128,7 +128,7 @@ export class MasterIndex {
         slaveHistory.length = indexSlave + 1;
 
         // we don't write twice an item at the end of the history
-        if (slaveHistory.length > 0 && slaveHistory.last[1] === obj) {
+        if (slaveHistory.length > 0 && equality(slaveHistory[indexSlave][1], obj)) {
             return;
         }
         // slave index found but for an earlier version than master index
