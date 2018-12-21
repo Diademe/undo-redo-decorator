@@ -70,7 +70,7 @@ class MapEntry<K, V> {
     }
 }
 
-@Undoable(["_data"])
+@Undoable(["_data", "_size", "_head", "_tail"])
 export class Map<K, V> {
     _head: MapEntry<K, V>;
     _tail: MapEntry<K, V>;

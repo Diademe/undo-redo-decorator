@@ -70,7 +70,7 @@ class SetEntry<K> {
     }
 }
 
-@Undoable(["_data"])
+@Undoable(["_data", "_size", "_head", "_tail"])
 export class Set<K> {
     _head: SetEntry<K>;
     _tail: SetEntry<K>;
