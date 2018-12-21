@@ -6,11 +6,8 @@ export type Class<T> = Abstract<T> | Constructor<T>;
 export enum Visitor { save, load };
 
 export class SuperArray<T> extends Array<T> {
-    constructor() {
-        super();
-    }
-    public get beforeLast() {
-        return this[this.length - 2];
+    constructor(...args: any[]) {
+        super(...args);
     }
 
     public get last() {
