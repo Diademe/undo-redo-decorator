@@ -200,7 +200,9 @@ function wrapper <T extends Class<any>, K extends keyof T>(forceWatch: K[]) {
 
             constructor(...args: any[]) {
                 super(...args);
-                const proxyInternalInstance = new proxyInternalClass();
+                // do not overwrite the __proxyInternal__ member
+                // if A inherit from B and both A and B are @Undoable, B constructor create the __proxyInternal__
+                const proxyInternalInstance = this.__proxyInternal__ ? this.__proxyInternal__.inherit(new proxyInternalClass() as any) : new proxyInternalClass();
                 proxyInternalInstance.target = this as any;
                 const descriptor = Object.getOwnPropertyDescriptor(
                     this,
