@@ -50,6 +50,10 @@ export class MasterIndex {
         this.isDirty = false;
     }
 
+    public loadInit() {
+        this.isDirty = true;
+    }
+
     public init() {
         this.currentIndex = 0;
         this.maxIndex = 0;

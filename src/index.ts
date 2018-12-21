@@ -71,6 +71,7 @@ export class UndoRedo {
      */
     public undo(index?: number) {
         this.index.undo(index);
+        this.index.loadInit();
         for (const watchable of this.watchables) {
             watchable.__proxyInternal__.visit(Visitor.load, this.index, this.action++);
         }
@@ -82,6 +83,7 @@ export class UndoRedo {
      */
     public redo(index?: number): void {
         this.index.redo(index);
+        this.index.loadInit();
         for (const watchable of this.watchables) {
             watchable.__proxyInternal__.visit(Visitor.load, this.index, this.action++);
         }
