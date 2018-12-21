@@ -43,13 +43,15 @@ describe("[undo | redo] Possible", () => {
         expect(ud.getCurrentIndex()).toBe(0);
         obj.a = 1
         ud.save();
-        obj.a = 1
+        obj.a = 2
         ud.save();
         obj.a = 1
         ud.save();
-        expect(ud.getCurrentIndex()).toBe(0);
+        expect(ud.getCurrentIndex()).toBe(2);
         ud.undo(0);
         expect(ud.getCurrentIndex()).toBe(0);
+        ud.redo()
+        expect(ud.getCurrentIndex()).toBe(1);
     });
 
     test("undo | redo", () => {
@@ -70,6 +72,5 @@ describe("[undo | redo] Possible", () => {
         expect(obj.a).toBe(1);
         expect(ud.getCurrentIndex()).toBe(0);
         expect(obj).toEqual(new Obj(1));
-
     });
 });

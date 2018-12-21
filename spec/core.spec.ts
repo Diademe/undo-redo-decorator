@@ -20,7 +20,7 @@ describe("core", () => {
         test("clone", () => {
             const b = a.clone();
             expect(b).toBeInstanceOf(SuperArray);
-            expect(b).not.toEqual(a);
+            expect(b).not.toBe(a);
         });
     });
 
@@ -72,12 +72,12 @@ describe("core", () => {
             });
 
             test("invalid redo parameter", () => {
+                m.saveInit(); // index = -1
+                m.set<Number, any>(h, 1); // index = 0
                 m.saveInit();
-                m.set<Number, any>(h, 1);
-                m.saveInit();
-                m.set<Number, any>(h, 2);
+                m.set<Number, any>(h, 2); // index = 1
                 expect(() => m.redo(0)).toThrow();
-                expect(() => m.redo(1)).toThrow();
+                expect(() => m.redo(1)).not.toThrow();
                 expect(() => m.redo(2)).toThrow();
                 expect(() => m.redo(3)).toThrow();
                 m.undo();

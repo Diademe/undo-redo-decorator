@@ -33,7 +33,7 @@ function isIterable(obj: any) {
     return typeof obj[Symbol.iterator] === "function";
 }
 
-@Undoable()
+@Undoable(["length"])
 class CustomArray extends Array {
     constructor(args?: any[]) {
         super();
@@ -102,6 +102,22 @@ describe("immutable", () => {
                 ud.undo();
                 expect(Array.from(x.entries())).toEqual([[1, "1"], [2, "2"], [3, "3"]]);
             });
+            test("entries", () => {
+                x = new CustomMap([]);
+                ud = new UndoRedo(x);
+                expect(Array.from(x.entries())).toEqual([]);
+                x.set(1, "1");
+                ud.save();
+                expect(Array.from(x.entries())).toEqual([[1, "1"]]);
+                x.set(2, "2");
+                ud.save();
+                expect(Array.from(x.entries())).toEqual([[1, "1"], [2, "2"]]);
+                ud.undo()
+                expect(Array.from(x.entries())).toEqual([[1, "1"]]);
+                ud.save();
+                ud.redo();
+                expect(Array.from(x.entries())).toEqual([[1, "1"], [2, "2"]]);
+            });
         });
 
         describe("CustomArray", () => {
@@ -165,13 +181,57 @@ describe("immutable", () => {
             test("pop", () => {
                 expect(x.pop()).toEqual(3);
             });
-            test("length", () => {
+            test("length 1", () => {
+                ud.undo(0);
+                x.length = 0;
+                ud.save();
+                expect(x.length).toEqual(0);
+                expect(ud.getCurrentIndex()).toEqual(1);
+
+                x.push(42);
+                ud.save();
+                expect(x.length).toEqual(1);
+                expect(ud.getCurrentIndex()).toEqual(2);
+
+                ud.undo();
+                expect(x.length).toEqual(0);
+
+                x.push(43);
+                ud.save();
+                expect(x.length).toEqual(1);
+                expect(ud.getCurrentIndex()).toEqual(2);
+
+            });
+            test("length 2", () => {
+                x = new CustomArray([]);
+                ud = new UndoRedo(x);
+                expect(x.length).toEqual(0);
+                expect(ud.getCurrentIndex()).toEqual(0);
+
+                x.push(1);
+                ud.save();
+                expect(x.length).toEqual(1);
+                expect(Array.from(x)).toEqual([1]);
+                expect(ud.getCurrentIndex()).toEqual(1);
+
+                ud.undo();
+                expect(x.length).toEqual(0);
+                expect(Array.from(x)).toEqual([]);
+                expect(ud.getCurrentIndex()).toEqual(0);
+
+                ud.redo();
+                expect(x.length).toEqual(1);
+                expect(Array.from(x)).toEqual([1]);
+                expect(ud.getCurrentIndex()).toEqual(1);
+            });
+            test("length 3", () => {
                 expect(x.length).toEqual(3);
                 x.pop()
                 expect(x.length).toEqual(2);
                 ud.save();
                 ud.save();
                 ud.save();
+                expect(x.length).toEqual(2);
 
                 ud.undo();
                 expect(x.length).toEqual(3);
