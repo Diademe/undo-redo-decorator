@@ -1,6 +1,6 @@
 import { MasterIndex, History } from "./core";
 import { Class, Key, Visitor } from "./type";
-import { getAllPropertyNames, doNotTrackMap, getInheritedPropertyDescriptor } from "./utils";
+import { getAllPropertyNames, doNotTrackMap, notDefined } from "./utils";
 
 // save map (class -> non enumerable) that we need to watch
 const forceWatchMap = new Map<any, Key[]>();
@@ -65,22 +65,32 @@ function proxyInternal<T extends Class<any>, K extends keyof T> (ctor: new(...ar
             this.action = -1;
         }
 
+        inherit<T extends{history: any, master: MasterIndex, target: any, action: number}>(arg: T): T {
+            arg.history = this.history;
+            arg.master = this.master;
+            arg.target = this.target;
+            arg.action = this.action;
+            return arg;
+        }
+
         /**
          * return true if data has change since last save
          */
         save(propKey: K): void {
             const value: T[K] = this.target[propKey];
-            if (this.history.has(propKey)) {
-                this.history.get(propKey).set(value);
-            }
-            else {
-                this.history.set(
-                    propKey,
-                    new History<T, K>(
-                        this.master,
-                        value
-                    )
-                );
+            if (propKey in this.target) {
+                if (this.history.has(propKey)) {
+                    this.history.get(propKey).set(value);
+                }
+                else {
+                    this.history.set(
+                        propKey,
+                        new History<T, K>(
+                            this.master,
+                            value
+                        )
+                    );
+                }
             }
         }
 
@@ -88,7 +98,10 @@ function proxyInternal<T extends Class<any>, K extends keyof T> (ctor: new(...ar
             const localHistory = this.history.get(propKey);
             if (localHistory) {
                 const val = localHistory.get();
-                if (this.target[propKey] !== val) { // trick to avoid rewrite non writable property
+                if (val === notDefined) {
+                    delete this.target[propKey];
+                }
+                else if (this.target[propKey] !== val) { // trick to avoid rewrite non writable property
                     this.target[propKey] = val;
                 }
             }

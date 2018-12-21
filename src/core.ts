@@ -1,4 +1,5 @@
 import { SuperArray, Class } from "./type";
+import { equality, notDefined } from "./utils";
 
 
 export class History<T extends Class<any>, K extends keyof T> {
@@ -12,7 +13,7 @@ export class History<T extends Class<any>, K extends keyof T> {
         const index = this.masterIndex.get(this.history);
         if (index === -1) {
             // the object is not define for this state of undo
-            return undefined;
+            return notDefined as any;
         }
         return this.history[index][1];
     }

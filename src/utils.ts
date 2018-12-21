@@ -11,6 +11,8 @@ export function is_constructor(f: any) {
     return true;
 }
 
+export const notDefined = {};
+
 export function getAllPropertyNames<T, K extends keyof T>(obj: T) {
     const props: [K, PropertyDescriptor][] = [];
     do {
