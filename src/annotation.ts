@@ -73,9 +73,6 @@ function proxyInternal<T extends Class<any>, K extends keyof T> (ctor: new(...ar
             return arg;
         }
 
-        /**
-         * return true if data has change since last save
-         */
         save(propKey: K): void {
             const value: T[K] = propKey in this.target ? this.target[propKey] : notDefined as any;
             if (this.history.has(propKey)) {
