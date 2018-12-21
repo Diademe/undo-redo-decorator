@@ -77,20 +77,18 @@ function proxyInternal<T extends Class<any>, K extends keyof T> (ctor: new(...ar
          * return true if data has change since last save
          */
         save(propKey: K): void {
-            const value: T[K] = this.target[propKey];
-            if (propKey in this.target) {
-                if (this.history.has(propKey)) {
-                    this.history.get(propKey).set(value);
-                }
-                else {
-                    this.history.set(
-                        propKey,
-                        new History<T, K>(
-                            this.master,
-                            value
-                        )
-                    );
-                }
+            const value: T[K] = propKey in this.target ? this.target[propKey] : notDefined as any;
+            if (this.history.has(propKey)) {
+                this.history.get(propKey).set(value);
+            }
+            else {
+                this.history.set(
+                    propKey,
+                    new History<T, K>(
+                        this.master,
+                        value
+                    )
+                );
             }
         }
 
@@ -102,7 +100,7 @@ function proxyInternal<T extends Class<any>, K extends keyof T> (ctor: new(...ar
                     delete this.target[propKey];
                 }
                 else if (this.target[propKey] !== val) { // trick to avoid rewrite non writable property
-                    this.target[propKey] = val;
+                    this.target[propKey] = val as T[K];
                 }
             }
             else {

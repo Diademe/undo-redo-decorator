@@ -11,7 +11,7 @@ export function is_constructor(f: any) {
     return true;
 }
 
-export const notDefined = {};
+export const notDefined = Symbol("not defined");
 
 export function equality(a: any, b: any): boolean {
     return a === b || (Number.isNaN(a) === true && Number.isNaN(b) === true);

@@ -3,13 +3,13 @@ import { equality, notDefined } from "./utils";
 
 
 export class History<T extends Class<any>, K extends keyof T> {
-    private history: SuperArray<[number, T[K]]>;
+    private history: SuperArray<[number, T[K] | Symbol]>;
     constructor(private masterIndex: MasterIndex, obj: T[K]) {
-        this.history = new SuperArray<[number, T[K]]>();
+        this.history = new SuperArray<[number, T[K]]>([0, notDefined]);
         this.masterIndex.set(this.history, obj);
     }
 
-    get(): T[K] {
+    get(): T[K] | Symbol {
         const index = this.masterIndex.get(this.history);
         if (index === -1) {
             // the object is not define for this state of undo
@@ -18,7 +18,7 @@ export class History<T extends Class<any>, K extends keyof T> {
         return this.history[index][1];
     }
 
-    set(obj: T[K]): void {
+    set(obj: T[K] | Symbol): void {
         this.masterIndex.set(this.history, obj);
     }
 
@@ -125,7 +125,7 @@ export class MasterIndex {
         return currentSlaveIndex;
     }
 
-    public set<T, K extends keyof T>(slaveHistory: SuperArray<[number, T[K]]>, obj: T[K]): void {
+    public set<T, K extends keyof T>(slaveHistory: SuperArray<[number, T[K] | Symbol]>, obj: T[K] | Symbol): void {
         const indexSlave = this.findIndex(slaveHistory);
 
         // we don't write twice an item at the end of the history
