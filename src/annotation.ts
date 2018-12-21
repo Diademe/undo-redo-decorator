@@ -6,7 +6,7 @@ import { getAllPropertyNames, doNotTrackMap, notDefined } from "./utils";
 const forceWatchMap = new Map<any, Key[]>();
 function setForceWatch(target: any, forceWatch: Key[]) {
     let metaData = forceWatchMap.get(target);
-    if (metaData === void 0) {
+    if (metaData === undefined) {
         metaData = [];
         forceWatchMap.set(target, metaData);
     }
@@ -55,10 +55,10 @@ function proxyInternal<T extends Class<any>, K extends keyof T> (ctor: new(...ar
         // watch non enumerable property of an object
         static nonEnumerables: K[];
         static doNotTrack: Set<K>;
-        history: Map<K, History<T, K>>;
-        master: MasterIndex;
-        target: T;
-        action: number;
+        public history: Map<K, History<T, K>>;
+        public master: MasterIndex;
+        public target: T;
+        private action: number;
 
         constructor() {
             this.history = new Map<K, History<T, K>>();
@@ -140,7 +140,7 @@ function proxyInternal<T extends Class<any>, K extends keyof T> (ctor: new(...ar
 
             const memberDispatched = new Set<K>();
             // member decorated with @UndoDoNotTrack should be ignored
-            const doNotTrack = (this.constructor as any).doNotTrack;
+            const doNotTrack = ProxyInternal.doNotTrack;
             for (const [propKey, descriptor] of getAllPropertyNames<T, K>(this.target)) {
                 if (!(!descriptor.enumerable
                     || descriptor.writable === false
@@ -154,7 +154,7 @@ function proxyInternal<T extends Class<any>, K extends keyof T> (ctor: new(...ar
             }
 
             // static member
-            (this.constructor as any).nonEnumerables.forEach((nonEnumerable: any) => {
+            ProxyInternal.nonEnumerables.forEach((nonEnumerable: any) => {
                 this.dispatchAndRecurse(nonEnumerable, v);
                 memberDispatched.add(nonEnumerable);
             });
@@ -194,9 +194,9 @@ function wrapper <T extends Class<any>, K extends keyof T>(forceWatch: K[]) {
         // bug of typescript : can not extends abstract class from parameters
         const anonymousClass = class ProxyWrapper extends (ctor as any) {
             // tslint:disable-next-line:variable-name
-            __proxyInternal__: typeof proxyInternal;
+            __proxyInternal__: InstanceType<ReturnType<typeof proxyInternal>>;
             // tslint:disable-next-line:variable-name
-            static __proxyInternal__: typeof proxyInternal;
+            static __proxyInternal__: InstanceType<ReturnType<typeof proxyInternal>>;
 
             constructor(...args: any[]) {
                 super(...args);
