@@ -119,8 +119,6 @@ export class MasterIndex {
         const currentSlaveIndex = slaveHistory.reverseFindIndex(
             ([slaveIndex, obj]: [number, T]) =>
                 slaveIndex <= this.currentIndex
-            ,
-            Math.min(this.currentIndex, slaveHistory.length - 1)
         );
         return currentSlaveIndex;
     }
@@ -129,7 +127,7 @@ export class MasterIndex {
         const indexSlave = this.findIndex(slaveHistory);
 
         // we don't write twice an item at the end of the history
-        if (slaveHistory.length > 0 && equality(slaveHistory[indexSlave][1], obj)) {
+        if (indexSlave !== -1 && slaveHistory.length > 0 && equality(slaveHistory[indexSlave][1], obj)) {
             return;
         }
 
