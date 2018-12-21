@@ -55,12 +55,14 @@ export class UndoRedo {
 
     /**
      * save: the current state is saved
+     * @returns the current index after the save
      */
-    public save(): void {
+    public save(): number {
         this.index.saveInit();
         for (const watchable of this.watchables) {
             watchable.__proxyInternal__.visit(Visitor.save, this.index, this.action++);
         }
+        return this.index.getCurrentIndex();
     }
 
     /**
