@@ -94,7 +94,7 @@ export class MasterIndex {
     public redo(index?: number): void {
         index = index !== undefined ? index : this.currentIndex + 1;
         if (
-            index <= this.currentIndex ||
+            index < this.currentIndex ||
             index > this.maxIndex
         ) {
             throw Error(
