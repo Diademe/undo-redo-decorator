@@ -124,13 +124,14 @@ export class MasterIndex {
     public set<T, K extends keyof T>(slaveHistory: SuperArray<[number, T[K]]>, obj: T[K]): void {
         const indexSlave = this.findIndex(slaveHistory);
 
-        // remove redo history
-        slaveHistory.length = indexSlave + 1;
-
         // we don't write twice an item at the end of the history
         if (slaveHistory.length > 0 && equality(slaveHistory[indexSlave][1], obj)) {
             return;
         }
+
+        // remove redo history
+        slaveHistory.length = indexSlave + 1;
+
         // slave index found but for an earlier version than master index
         slaveHistory.length++;
         if (!this.isDirty) {
