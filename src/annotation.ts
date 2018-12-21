@@ -160,7 +160,7 @@ function proxyInternal<T extends Class<any>, K extends keyof T> (ctor: new(...ar
             });
 
             // collection
-            if (this.target instanceof Map || this.target instanceof Set || this.target instanceof Array) {
+            if (this.target instanceof Map || this.target instanceof Set) {
               [...(this.target as any).entries()].forEach(([key, val]) => {
                     memberDispatched.add(key);
                     this.dispatchAndRecurse(key, v);
