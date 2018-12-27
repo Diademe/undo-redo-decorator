@@ -91,7 +91,7 @@ describe("decorator", () => {
             expect(new Test().member).toEqual(Value.constructor);
         });
 
-        test("do not track", () => {
+        test("do not track 1", () => {
             @Undoable()
             class MotherTest {
                 @UndoDoNotTrack
@@ -127,6 +127,27 @@ describe("decorator", () => {
             expect(childTest.motherDNT).toEqual(15);
             expect(childTest.childDNT).toEqual(44);
             expect(childTest.childDoTrack).toEqual(18);
+        });
+
+        test("do not track 2", () => {
+            @Undoable()
+            class MotherTest {
+                @UndoDoNotTrack
+                motherDNT: Number;
+                constructor() {
+                    this.motherDNT = 42;
+                }
+            }
+            @Undoable()
+            class ChildTest extends MotherTest {}
+            const childTest = new ChildTest();
+            const ud = new UndoRedo(childTest);
+            expect(childTest.motherDNT).toEqual(42);
+            childTest.motherDNT = 15;
+            ud.save();
+            expect(childTest.motherDNT).toEqual(15);
+            ud.undo();
+            expect(childTest.motherDNT).toEqual(15);
         });
     });
 });

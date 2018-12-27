@@ -115,6 +115,52 @@ describe("Dcerialize", () => {
         expect(instance.member0).toBe(2);
     });
 
+    test("inheritance serialization", () => {
+        @Undoable()
+        class Test {
+            @serializeAs(() => String)
+            public value0 = "strvalue";
+            @serializeAs(() => Boolean)
+            public value1 = true;
+            @serializeAs(() => Number)
+            public value2 = 100;
+        }
+
+        @inheritSerialization(() => Test)
+        @Undoable()
+        class ChildTest1 extends Test {
+            @serializeAs(() => String)
+            public value0 = "childStr";
+            @serializeAs(() => Number)
+            public member0 = 1;
+        }
+
+        let instance = Serialize(new ChildTest1(), () => ChildTest1);
+        expect(instance).toEqual({
+            value0: "childStr",
+            value1: true,
+            value2: 100,
+            member0: 1
+        });
+
+        @Undoable() // switch place of decorator
+        @inheritSerialization(() => Test)
+        class ChildTest2 extends Test {
+            @serializeAs(() => String)
+            public value0 = "childStr";
+            @serializeAs(() => Number)
+            public member0 = 1;
+        }
+
+        instance = Serialize(new ChildTest2(), () => ChildTest2);
+        expect(instance).toEqual({
+            value0: "childStr",
+            value1: true,
+            value2: 100,
+            member0: 1
+        });
+    });
+
     test("runtime typing", () => {
         @Undoable()
         class Test0 {
