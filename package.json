@@ -1,5 +1,5 @@
 {
-    "name": "undo-redo-proxy",
+    "name": "undo-redo-decorator",
     "version": "1.0.0",
     "description": "",
     "main": "./dist/index.js",
