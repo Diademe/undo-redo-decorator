@@ -15,6 +15,10 @@
         "test:debug": "node --inspect-brk node_modules/.bin/jest --runInBand",
         "lint": "tslint -c tslint.json 'src/**/*.ts' && tslint -c tslint.json 'spec/**/*.ts'"
     },
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/Diademe/dcerialize.git"
+    },
     "author": "Diademe",
     "license": "Mit",
     "devDependencies": {
