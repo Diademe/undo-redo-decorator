@@ -4,9 +4,6 @@
     "description": "",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
-    "files": [
-        "./dist/*"
-    ],
     "scripts": {
         "build": "tsc --project src/tsconfig.json",
         "test": "jest --color --silent",
@@ -17,10 +14,10 @@
     },
     "repository": {
         "type": "git",
-        "url": "git://github.com/Diademe/dcerialize.git"
+        "url": "https://github.com/Diademe/undo-redo-decorator"
     },
     "author": "Diademe",
-    "license": "Mit",
+    "license": "MIT",
     "devDependencies": {
         "@types/jest": "^23.3.10",
         "dcerialize": "file:../dcerialize",
