@@ -1,6 +1,6 @@
 import { MasterIndex, History } from "./core";
 import { Class, Key, Visitor } from "./type";
-import { getAllPropertyNames, doNotTrackMap, notDefined } from "./utils";
+import { getAllPropertyNames, doNotTrackMap, notDefined, afterLoadMap } from "./utils";
 
 // save map (class -> non enumerable) that we need to watch
 const forceWatchMap = new Map<any, Key[]>();
@@ -50,11 +50,26 @@ export function UndoDoNotTrack(target: any, propKey: Key) {
     }
 }
 
+/**
+ * Function decorator. Function decorated will be executed after each redo and after each undo.
+ */
+export function UndoAfterLoad(target: any, propKey: Key) {
+    if (typeof target[propKey] === "function") {
+        const set = findAncestorDecorated(afterLoadMap, target.constructor);
+        set.add(propKey);
+        afterLoadMap.set(target.constructor, set);
+    }
+    else {
+        console.warn(`AfterLoad is applied to the property ${propKey as string}, but ${propKey as string} is not a function`);
+    }
+}
+
 function proxyInternal<T extends Class<any>, K extends keyof T> (ctor: new(...args: any[]) => T) {
     const proxyInternalClass =  class ProxyInternal {
         // watch non enumerable property of an object
         static nonEnumerables: K[];
         static doNotTrack: Set<K>;
+        static afterLoad: Set<K>;
         public history: Map<K, History<T, K>>;
         public master: MasterIndex;
         public target: T;
@@ -168,9 +183,16 @@ function proxyInternal<T extends Class<any>, K extends keyof T> (ctor: new(...ar
                     this.dispatchAndRecurse(propKey, v);
                 }
             }
+
+            if (v === Visitor.load) {
+                for (const propKey of ProxyInternal.afterLoad) {
+                    (this.target as any)[propKey]();
+                }
+            }
         }
     }
     proxyInternalClass.doNotTrack = findAncestorDecorated(doNotTrackMap, ctor) as Set<K> || new Set<K>();
+    proxyInternalClass.afterLoad = findAncestorDecorated(afterLoadMap, ctor) as Set<K> || new Set<K>();
     const descriptor = Object.getOwnPropertyDescriptor(
         proxyInternalClass,
         "name"
