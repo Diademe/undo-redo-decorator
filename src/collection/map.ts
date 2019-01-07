@@ -1,6 +1,6 @@
 "use strict";
 import { IteratorAbstract, Flag, Storage, isObject, hash, isCallable, InternalStorage } from "./utils";
-import { Undoable } from "../annotation";
+import { Undoable } from "../decorator";
 
 // tslint:disable:no-null-keyword
 

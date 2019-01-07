@@ -1,5 +1,5 @@
 "use strict";
-import { Undoable } from "../annotation";
+import { Undoable } from "../decorator";
 
 // tslint:disable:no-null-keyword
 export enum Flag {
