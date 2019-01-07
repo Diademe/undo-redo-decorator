@@ -1,5 +1,6 @@
 import { Undoable, UndoDoNotTrack, UndoRedo } from "../src/index";
 import { is_constructor } from "../src/utils";
+import { UndoAfterLoad } from "../src/decorator";
 
 describe("decorator", () => {
     const db = new Set<any>();
@@ -57,39 +58,48 @@ describe("decorator", () => {
         expect(((new D()) as any).__proxyInternal__.constructor.nonEnumerables).toEqual(["D", "A"]);
     });
 
-    describe("factory and initialization", () => {
-        enum Value { default, constructor, initialization };
-        test("default", () => {
+    describe("After Load", () => {
+        test("no inheritance", () => {
             @Undoable()
             class Test {
-                member = Value.default;
-                constructor(init = true) {
-                    if (init) {
-                        this.member = Value.constructor;
-                    }
-                }
-                init() {
-                    this.member = Value.initialization;
+                prop = 1;
+                @UndoAfterLoad
+                after() {
+                    this.prop = 2;
                 }
             }
-            expect(new Test(false).member).toEqual(Value.default);
+            const test = new Test();
+            const ud = new UndoRedo(test);
+            expect(test.prop).toBe(1);
+            test.prop = 3;
+            ud.save();
+            expect(test.prop).toBe(3);
+            ud.undo();
+            expect(test.prop).toBe(2);
         });
 
-        test("constructor", () => {
+        test("inheritance", () => {
             @Undoable()
-            class Test {
-                member = Value.default;
-                constructor(init = true) {
-                    if (init) {
-                        this.member = Value.constructor;
-                    }
-                }
-                init() {
-                    this.member = Value.initialization;
+            class MotherTest {
+                prop = 1;
+                @UndoAfterLoad
+                after() {
+                    this.prop = 2;
                 }
             }
-            expect(new Test().member).toEqual(Value.constructor);
+            @Undoable()
+            class Test extends MotherTest {
+            }
+            const test = new Test();
+            const ud = new UndoRedo(test);
+            expect(test.prop).toBe(1);
+            test.prop = 3;
+            ud.save();
+            expect(test.prop).toBe(3);
+            ud.undo();
+            expect(test.prop).toBe(2);
         });
+    });
 
         test("do not track 1", () => {
             @Undoable()
