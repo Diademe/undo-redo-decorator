@@ -101,7 +101,8 @@ describe("decorator", () => {
         });
     });
 
-        test("do not track 1", () => {
+    describe("Do not track", () => {
+        test("test 1", () => {
             @Undoable()
             class MotherTest {
                 @UndoDoNotTrack
@@ -139,7 +140,7 @@ describe("decorator", () => {
             expect(childTest.childDoTrack).toEqual(18);
         });
 
-        test("do not track 2", () => {
+        test("test 2", () => {
             @Undoable()
             class MotherTest {
                 @UndoDoNotTrack
