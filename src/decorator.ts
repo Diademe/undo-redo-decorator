@@ -21,16 +21,16 @@ function getForceWatch<T, K extends keyof T>(target: T): K[] {
     return metaData;
 }
 
-function findDoNotTrack(ctor: any) {
+function findAncestorDecorated(map: Map<any, Set<Key>>, ctor: any) {
     // if target is associated with a set, we should not clone the set
-    if (doNotTrackMap.has(ctor)) {
-        return doNotTrackMap.get(ctor);
+    if (map.has(ctor)) {
+        return map.get(ctor);
     }
     // if a parent of the target is associated with a set,
-    // we should clone the set (so that child doNotTrack doesn't impact the parent)
+    // we should clone the set (so that child ctor doesn't impact the parent)
     while (ctor = Object.getPrototypeOf(ctor)) {
-        if (doNotTrackMap.has(ctor)) {
-            return new Set(doNotTrackMap.get(ctor));
+        if (map.has(ctor)) {
+            return new Set(map.get(ctor));
         }
     };
     return new Set();
@@ -44,7 +44,7 @@ export function UndoDoNotTrack(target: any, propKey: Key) {
         console.warn("UndoDoNotTrack is unnecessary on function as they are not monitored by Undo Redo Proxy");
     }
     else {
-        const set = findDoNotTrack(target.constructor);
+        const set = findAncestorDecorated(doNotTrackMap, target.constructor);
         set.add(propKey);
         doNotTrackMap.set(target.constructor, set);
     }
@@ -170,7 +170,7 @@ function proxyInternal<T extends Class<any>, K extends keyof T> (ctor: new(...ar
             }
         }
     }
-    proxyInternalClass.doNotTrack = findDoNotTrack(ctor) as Set<K> || new Set<K>();
+    proxyInternalClass.doNotTrack = findAncestorDecorated(doNotTrackMap, ctor) as Set<K> || new Set<K>();
     const descriptor = Object.getOwnPropertyDescriptor(
         proxyInternalClass,
         "name"
