@@ -48,5 +48,5 @@ export function getInheritedPropertyDescriptor<T, K extends keyof T> (object: T,
     return descriptor;
 }
 
-// associate class to function name to be called after creation
+// associate class to property name that must be ignored by UndoRedo
 export const doNotTrackMap = new Map<any, Set<Key>>();
