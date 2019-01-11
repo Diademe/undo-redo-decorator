@@ -45,6 +45,9 @@ class Foo {}
 ```
 To monitor a member that is not [enumerable](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Enumerability_and_ownership_of_properties), add it in parameter to `@Undoable([/*non enumerable member*/])`.
 
+### UndoAfterLoad
+Decorate a method with `@UndoAfterLoad` to call it when an undo or a redo (ie a load) is being done. This method will be called as soon as each member of its class has been loaded. If there are circulars references, the time at which the method will be decorated is unspecified.
+
 ### UndoRedo
 This is the class that will do the monitoring of whatever you want. You need to create an instance of UndoRedo, and register the instances of classes that you want to monitor.
 
