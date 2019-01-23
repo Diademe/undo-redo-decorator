@@ -67,9 +67,9 @@ export function UndoAfterLoad(target: any, propKey: Key) {
 function proxyInternal<T extends Class<any>, K extends keyof T> (ctor: new(...args: any[]) => T) {
     const proxyInternalClass =  class ProxyInternal {
         // watch non enumerable property of an object
-        static nonEnumerables: K[];
-        static doNotTrack: Set<K>;
-        static afterLoad: Set<K>;
+        public static nonEnumerables: K[];
+        public static doNotTrack: Set<K>;
+        public static afterLoad: Set<K>;
         public history: Map<K, History<T, K>>;
         public master: MasterIndex;
         public target: T;
