@@ -169,15 +169,6 @@ function proxyInternal<T extends Class<any>, K extends keyof T> (ctor: new(...ar
                 memberDispatched.add(nonEnumerable);
             });
 
-            // collection
-            if (this.target instanceof Map || this.target instanceof Set) {
-              [...(this.target as any).entries()].forEach(([key, val]) => {
-                    memberDispatched.add(key);
-                    this.dispatchAndRecurse(key, v);
-                }
-              );
-            }
-
             for (const [propKey, history] of this.history) {
                 if (!memberDispatched.has(propKey)) {
                     this.dispatchAndRecurse(propKey, v);
