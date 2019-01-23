@@ -163,7 +163,7 @@ function proxyInternal<T extends Class<any>, K extends keyof T> (ctor: new(...ar
                 }
             }
 
-            // static member
+            // non enumerables
             ProxyInternal.nonEnumerables.forEach((nonEnumerable: any) => {
                 this.dispatchAndRecurse(nonEnumerable, v);
                 memberDispatched.add(nonEnumerable);
