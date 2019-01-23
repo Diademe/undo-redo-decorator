@@ -6,7 +6,8 @@ import {
     inheritSerialization,
     RuntimeTypingResetDictionary,
     RuntimeTypingSetTypeString,
-    RuntimeTypingSetEnable
+    RuntimeTypingDisable,
+    RuntimeTypingEnable
 } from "dcerialize";
 import { Undoable } from "../src";
 
@@ -190,7 +191,7 @@ describe("Dcerialize", () => {
         RuntimeTypingSetTypeString(Test1, "my Test1 type");
         RuntimeTypingSetTypeString(Test2, "my Test2 type");
         RuntimeTypingSetTypeString(Test3, "my Test3 type");
-        RuntimeTypingSetEnable(true);
+        RuntimeTypingEnable();
         const json = Deserialize(
             {
                 $type: "my Test3 type",
@@ -200,7 +201,7 @@ describe("Dcerialize", () => {
             () => Test3
         );
         RuntimeTypingResetDictionary();
-        RuntimeTypingSetEnable(false);
+        RuntimeTypingDisable();
         expect(json instanceof Test3).toBeTruthy();
         expect(json.m1 instanceof Test0).toBeTruthy();
         expect(json.m2 instanceof Test1).toBeTruthy();
