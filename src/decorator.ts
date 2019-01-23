@@ -64,8 +64,8 @@ export function UndoAfterLoad(target: any, propKey: Key) {
     }
 }
 
-function proxyInternal<T extends Class<any>, K extends keyof T> (ctor: new(...args: any[]) => T) {
-    const proxyInternalClass =  class ProxyInternal {
+function undoInternal<T extends Class<any>, K extends keyof T> (ctor: new(...args: any[]) => T) {
+    const undoInternalClass =  class UndoInternal {
         // watch non enumerable property of an object
         public static nonEnumerables: K[];
         public static doNotTrack: Set<K>;
@@ -129,12 +129,12 @@ function proxyInternal<T extends Class<any>, K extends keyof T> (ctor: new(...ar
             }
             // dispatch on key (example : object key of a map)
             const key = propKey;
-            if (key && (key as any).__proxyInternal__) {
-                (key as any).__proxyInternal__.visit(v, this.master, this.action);
+            if (key && (key as any).__undoInternal__) {
+                (key as any).__undoInternal__.visit(v, this.master, this.action);
             }
             const val = this.target[propKey];
-            if (val && (val as any).__proxyInternal__) {
-                (val as any).__proxyInternal__.visit(v, this.master, this.action);
+            if (val && (val as any).__undoInternal__) {
+                (val as any).__undoInternal__.visit(v, this.master, this.action);
             }
         }
 
@@ -150,7 +150,7 @@ function proxyInternal<T extends Class<any>, K extends keyof T> (ctor: new(...ar
 
             const memberDispatched = new Set<K>();
             // member decorated with @UndoDoNotTrack should be ignored
-            const doNotTrack = ProxyInternal.doNotTrack;
+            const doNotTrack = UndoInternal.doNotTrack;
             for (const [propKey, descriptor] of getAllPropertyNames<T, K>(this.target)) {
                 if (!(!descriptor.enumerable
                     || descriptor.writable === false
@@ -164,7 +164,7 @@ function proxyInternal<T extends Class<any>, K extends keyof T> (ctor: new(...ar
             }
 
             // non enumerables
-            ProxyInternal.nonEnumerables.forEach((nonEnumerable: any) => {
+            UndoInternal.nonEnumerables.forEach((nonEnumerable: any) => {
                 this.dispatchAndRecurse(nonEnumerable, v);
                 memberDispatched.add(nonEnumerable);
             });
@@ -176,63 +176,63 @@ function proxyInternal<T extends Class<any>, K extends keyof T> (ctor: new(...ar
             }
 
             if (v === Visitor.load) {
-                for (const propKey of ProxyInternal.afterLoad) {
+                for (const propKey of UndoInternal.afterLoad) {
                     (this.target as any)[propKey]();
                 }
             }
         }
     }
-    proxyInternalClass.doNotTrack = findAncestorDecorated(doNotTrackMap, ctor) as Set<K> || new Set<K>();
-    proxyInternalClass.afterLoad = findAncestorDecorated(afterLoadMap, ctor) as Set<K> || new Set<K>();
+    undoInternalClass.doNotTrack = findAncestorDecorated(doNotTrackMap, ctor) as Set<K> || new Set<K>();
+    undoInternalClass.afterLoad = findAncestorDecorated(afterLoadMap, ctor) as Set<K> || new Set<K>();
     const descriptor = Object.getOwnPropertyDescriptor(
-        proxyInternalClass,
+        undoInternalClass,
         "name"
     ) || { writable: true };
-    Object.defineProperty(proxyInternalClass, "name", {
+    Object.defineProperty(undoInternalClass, "name", {
         ...descriptor,
         enumerable: false,
         value: `internal of ${ctor.name}`
     });
-    return proxyInternalClass;
+    return undoInternalClass;
 }
 
 function wrapper <T extends Class<any>, K extends keyof T>(forceWatch: K[]) {
     return (ctor: new(...args: any[]) => any) => {
-        const proxyInternalClass = proxyInternal<T, K>(ctor);
+        const undoInternalClass = undoInternal<T, K>(ctor);
         // bug of typescript : can not extends abstract class from parameters
         const anonymousClass = class ProxyWrapper extends (ctor as any) {
             // tslint:disable-next-line:variable-name
-            __proxyInternal__: InstanceType<ReturnType<typeof proxyInternal>>;
+            __undoInternal__: InstanceType<ReturnType<typeof undoInternal>>;
             // tslint:disable-next-line:variable-name
-            static __proxyInternal__: InstanceType<ReturnType<typeof proxyInternal>>;
+            static __undoInternal__: InstanceType<ReturnType<typeof undoInternal>>;
 
             constructor(...args: any[]) {
                 super(...args);
-                // do not overwrite the __proxyInternal__ member
-                // if A inherit from B and both A and B are @Undoable, B constructor create the __proxyInternal__
-                const proxyInternalInstance = this.__proxyInternal__ ? this.__proxyInternal__.inherit(new proxyInternalClass() as any) : new proxyInternalClass();
-                proxyInternalInstance.target = this as any;
+                // do not overwrite the __undoInternal__ member
+                // if A inherit from B and both A and B are @Undoable, B constructor create the __undoInternal__
+                const undoInternalInstance = this.__undoInternal__ ? this.__undoInternal__.inherit(new undoInternalClass() as any) : new undoInternalClass();
+                undoInternalInstance.target = this as any;
                 const descriptor = Object.getOwnPropertyDescriptor(
                     this,
-                    "__proxyInternal__"
+                    "__undoInternal__"
                 ) || { writable: true };
-                Object.defineProperty(this, "__proxyInternal__", {
+                Object.defineProperty(this, "__undoInternal__", {
                     ...descriptor,
                     enumerable: false,
-                    value: proxyInternalInstance
+                    value: undoInternalInstance
                 });
             }
         };
 
         setForceWatch(anonymousClass, forceWatch);
-        proxyInternalClass.nonEnumerables = getForceWatch(anonymousClass) as any;
+        undoInternalClass.nonEnumerables = getForceWatch(anonymousClass) as any;
 
         // static
-        const proxyInternalInstance = new (proxyInternalClass as any)();
-        proxyInternalInstance.target = anonymousClass;
-        Object.defineProperty(anonymousClass, "__proxyInternal__", {
+        const undoInternalInstance = new (undoInternalClass as any)();
+        undoInternalInstance.target = anonymousClass;
+        Object.defineProperty(anonymousClass, "__undoInternal__", {
             enumerable: false,
-            value: proxyInternalInstance
+            value: undoInternalInstance
         });
         Object.defineProperty(anonymousClass, "name", {
             enumerable: false,

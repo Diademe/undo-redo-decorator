@@ -30,9 +30,9 @@ export class UndoRedo {
     }
 
     private internalAdd(watchable?: any) {
-        if (watchable && (watchable as any).__proxyInternal__) {
+        if (watchable && (watchable as any).__undoInternal__) {
             this.watchables.push(watchable);
-            watchable.__proxyInternal__.visit(Visitor.save, this.index, this.action++);
+            watchable.__undoInternal__.visit(Visitor.save, this.index, this.action++);
         }
         else {
             throw Error(`${watchable} is not decorated with @Undoable()`);
@@ -60,7 +60,7 @@ export class UndoRedo {
     public save(): number {
         this.index.saveInit();
         for (const watchable of this.watchables) {
-            watchable.__proxyInternal__.visit(Visitor.save, this.index, this.action++);
+            watchable.__undoInternal__.visit(Visitor.save, this.index, this.action++);
         }
         return this.index.getCurrentIndex();
     }
@@ -73,7 +73,7 @@ export class UndoRedo {
         this.index.undo(index);
         this.index.loadInit();
         for (const watchable of this.watchables) {
-            watchable.__proxyInternal__.visit(Visitor.load, this.index, this.action++);
+            watchable.__undoInternal__.visit(Visitor.load, this.index, this.action++);
         }
     }
 
@@ -85,7 +85,7 @@ export class UndoRedo {
         this.index.redo(index);
         this.index.loadInit();
         for (const watchable of this.watchables) {
-            watchable.__proxyInternal__.visit(Visitor.load, this.index, this.action++);
+            watchable.__undoInternal__.visit(Visitor.load, this.index, this.action++);
         }
     }
 

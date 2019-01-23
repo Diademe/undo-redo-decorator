@@ -52,10 +52,10 @@ describe("decorator", () => {
         class C extends B {}
         @Undoable(["D"])
         class D extends A {}
-        expect(((new A()) as any).__proxyInternal__.constructor.nonEnumerables).toEqual(["A"]);
-        expect(((new B()) as any).__proxyInternal__.constructor.nonEnumerables).toEqual(["B", "A"]);
-        expect(((new C()) as any).__proxyInternal__.constructor.nonEnumerables).toEqual(["C", "B", "A"]);
-        expect(((new D()) as any).__proxyInternal__.constructor.nonEnumerables).toEqual(["D", "A"]);
+        expect(((new A()) as any).__undoInternal__.constructor.nonEnumerables).toEqual(["A"]);
+        expect(((new B()) as any).__undoInternal__.constructor.nonEnumerables).toEqual(["B", "A"]);
+        expect(((new C()) as any).__undoInternal__.constructor.nonEnumerables).toEqual(["C", "B", "A"]);
+        expect(((new D()) as any).__undoInternal__.constructor.nonEnumerables).toEqual(["D", "A"]);
     });
 
     describe("After Load", () => {
