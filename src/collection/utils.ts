@@ -42,7 +42,7 @@ export abstract class IteratorAbstract<T> implements Iterator<T> {
         this._flag = flag;
         this._currentEntry = null;
     }
-    [Symbol.iterator]() {
+    [Symbol.iterator](): IterableIterator<T> {
         return this;
     }
     abstract next(): IteratorResult<T>;

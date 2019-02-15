@@ -11,7 +11,7 @@ class SetIterator<T> extends IteratorAbstract<T> {
         super(flag);
         this._set = set;
     }
-    next() {
+    next(): IteratorResult<R> {
         if (!(this instanceof SetIterator)) {
             throw new TypeError(
                 "Method Set Iterator.prototype.next called on incompatible receiver " +
@@ -109,7 +109,7 @@ export class Set<K> {
         }
     }
 
-    add(value: K) {
+    add(value: K): this {
         if (!(this instanceof Set)) {
             throw new TypeError("Method Set.prototype.add called on incompatible receiver " + this);
         }
@@ -156,7 +156,7 @@ export class Set<K> {
         return this;
     }
 
-    has(value: K) {
+    has(value: K): boolean {
         if (!(this instanceof Set)) {
             throw new TypeError("Method Set.prototype.has called on incompatible receiver " + this);
         }
@@ -204,7 +204,7 @@ export class Set<K> {
         this._size = 0;
     }
 
-    delete (value: K) {
+    delete (value: K): boolean {
         if (!(this instanceof Set)) {
             throw new TypeError("Method Set.prototype.delete called on incompatible receiver " + this);
         }

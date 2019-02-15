@@ -11,7 +11,7 @@ class MapIterator<K, V> extends IteratorAbstract<[K, V]> {
         this._map = map;
     }
 
-    next() {
+    next(): IteratorResult<R> {
         if (!(this instanceof MapIterator)) {
             throw new TypeError(
                 "Method Map Iterator.prototype.next called on incompatible receiver " +
