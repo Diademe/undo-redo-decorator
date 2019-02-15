@@ -19,21 +19,6 @@ export function isCallable(fn: any) {
     return typeof fn === "function";
 }
 
-interface IteratorResult<T> {
-    done: boolean;
-    value: T;
-}
-
-interface Iterator<T> {
-    next(value?: any): IteratorResult<T>;
-    return?(value?: any): IteratorResult<T>;
-    throw?(e?: any): IteratorResult<T>;
-}
-
-export interface Iterable<T> {
-    [Symbol.iterator]: () => Iterator<T>;
-}
-
 export abstract class IteratorAbstract<T> implements Iterator<T> {
     _flag: Flag;
     _currentEntry: any;
