@@ -4,7 +4,7 @@ import { Undoable } from "../decorator";
 
 // tslint:disable:no-null-keyword
 
-class MapIterator<K, V> extends IteratorAbstract<[K, V]> {
+class MapIterator<K, V, R = K | V | [K, V]> extends IteratorAbstract<R> {
     _map: Map<K, V>;
     constructor(map: Map<K, V>, flag: Flag) {
         super(flag);
@@ -286,21 +286,21 @@ export class Map<K, V> {
         return true;
     }
 
-    entries(): MapIterator<K, V> {
+    entries(): MapIterator<K, V, [K, V]> {
         if (!(this instanceof Map)) {
             throw new TypeError("Method Map.prototype.entries called on incompatible receiver " + this);
         }
         return new MapIterator(this, Flag.KeyValue);
     }
 
-    values(): MapIterator<K, V> {
+    values(): MapIterator<K, V, V> {
         if (!(this instanceof Map)) {
             throw new TypeError("Method Map.prototype.values called on incompatible receiver " + this);
         }
         return new MapIterator(this, Flag.Value);
     }
 
-    keys(): MapIterator<K, V> {
+    keys(): MapIterator<K, V, K> {
         if (!(this instanceof Map)) {
             throw new TypeError("Method Map.prototype.keys called on incompatible receiver " + this);
         }

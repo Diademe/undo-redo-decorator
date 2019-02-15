@@ -5,9 +5,9 @@ import { Undoable } from "../decorator";
 // tslint:disable:no-null-keyword
 
 @Undoable()
-class SetIterator<T> extends IteratorAbstract<T> {
-    _set: Set<T>;
-    constructor(set: Set<T>, flag: Flag) {
+class SetIterator<K, R = K | [K, K]> extends IteratorAbstract<R> {
+    _set: Set<K>;
+    constructor(set: Set<K>, flag: Flag) {
         super(flag);
         this._set = set;
     }
@@ -255,28 +255,28 @@ export class Set<K> {
         return true;
     }
 
-    entries(): SetIterator<K> {
+    entries(): SetIterator<K, [K, K]> {
         if (!(this instanceof Set)) {
             throw new TypeError("Method Set.prototype.entries called on incompatible receiver " + this);
         }
-        return new SetIterator(this, Flag.KeyValue);
+        return new SetIterator<K, [K, K]>(this, Flag.KeyValue);
     }
 
-    values(): SetIterator<K> {
+    values(): SetIterator<K, K> {
         if (!(this instanceof Set)) {
             throw new TypeError("Method Set.prototype.values called on incompatible receiver " + this);
         }
         return new SetIterator(this, Flag.Value);
     }
 
-    keys(): SetIterator<K> {
+    keys(): SetIterator<K, K> {
         if (!(this instanceof Set)) {
             throw new TypeError("Method Set.prototype.keys called on incompatible receiver " + this);
         }
         return new SetIterator(this, Flag.Key);
     }
 
-    [Symbol.iterator](): SetIterator<K> {
+    [Symbol.iterator](): SetIterator<K, K> {
         return this.keys();
     }
 
