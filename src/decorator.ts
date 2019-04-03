@@ -89,7 +89,7 @@ function undoInternal<T extends Class<any>, K extends keyof T> (ctor: new(...arg
         public history: Map<K, History<T, K>>;
         public master: MasterIndex;
         public target: T;
-        private action: number;
+        private action: number; // prevent recursion to loop
 
         constructor() {
             this.history = new Map<K, History<T, K>>();
