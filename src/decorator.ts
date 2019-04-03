@@ -136,7 +136,7 @@ function undoInternal<T extends Class<any>, K extends keyof T> (ctor: new(...arg
             }
         }
 
-        dispatchAndRecurse(propKey: K, v: Visitor): void {
+        dispatchAndRecurse(propKey: K, v: Visitor, recurse: boolean): void {
             if (v === Visitor.save) {
                 this.save(propKey);
             }
