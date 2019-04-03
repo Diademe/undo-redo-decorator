@@ -1,6 +1,6 @@
 "use strict";
 import { IteratorAbstract, Flag, Storage, isObject, hash, isCallable, InternalStorage } from "./utils";
-import { Undoable } from "../decorator";
+import { Undoable, UndoDoNotRecurs } from "../decorator";
 
 // tslint:disable:no-null-keyword
 
@@ -62,7 +62,9 @@ Object.defineProperty(MapIterator.prototype, Symbol.toStringTag, {
 
 @Undoable()
 class MapEntry<K, V> {
+    @UndoDoNotRecurs
     next: MapEntry<K, V>;
+    @UndoDoNotRecurs
     prev: MapEntry<K, V>;
     constructor(public key: K, public value: V) {
         this.next = null;

@@ -1,6 +1,6 @@
 import { MasterIndex, History } from "./core";
 import { Class, Key, Visitor } from "./type";
-import { getAllPropertyNames, doNotTrackMap, notDefined, afterLoadMap } from "./utils";
+import { getAllPropertyNames, doNotTrackMap, notDefined, afterLoadMap, doNotRecursMap } from "./utils";
 
 // save map (class -> non enumerable) that we need to watch
 const forceWatchMap = new Map<any, Key[]>();
@@ -51,6 +51,21 @@ export function UndoDoNotTrack(target: any, propKey: Key) {
 }
 
 /**
+ * property decorator. Property decorated will be monitored by Undo Redo, but that wont propagate the recursion
+ * used to flatten the recursion
+ */
+export function UndoDoNotRecurs(target: any, propKey: Key) {
+    if (typeof target[propKey] === "function") {
+        console.warn("UndoDoNotRecurs is unnecessary on function as they are not monitored by Undo Redo Proxy");
+    }
+    else {
+        const set = findAncestorDecorated(doNotRecursMap, target.constructor);
+        set.add(propKey);
+        doNotRecursMap.set(target.constructor, set);
+    }
+}
+
+/**
  * Function decorator. Function decorated will be executed after each redo and after each undo.
  */
 export function UndoAfterLoad(target: any, propKey: Key) {
@@ -69,6 +84,7 @@ function undoInternal<T extends Class<any>, K extends keyof T> (ctor: new(...arg
         // watch non enumerable property of an object
         public static nonEnumerables: K[];
         public static doNotTrack: Set<K>;
+        public static doNotRecurs: Set<K>;
         public static afterLoad: Set<K>;
         public history: Map<K, History<T, K>>;
         public master: MasterIndex;
@@ -127,14 +143,16 @@ function undoInternal<T extends Class<any>, K extends keyof T> (ctor: new(...arg
             else if (v === Visitor.load) {
                 this.load(propKey);
             }
-            // dispatch on key (example : object key of a map)
-            const key = propKey;
-            if (key && (key as any).__undoInternal__) {
-                (key as any).__undoInternal__.visit(v, this.master, this.action);
-            }
-            const val = this.target[propKey];
-            if (val && (val as any).__undoInternal__) {
-                (val as any).__undoInternal__.visit(v, this.master, this.action);
+            if (recurse) {
+                // dispatch on key (example : object key of a map)
+                const key = propKey;
+                if (key && (key as any).__undoInternal__) {
+                    (key as any).__undoInternal__.visit(v, this.master, this.action);
+                }
+                const val = this.target[propKey];
+                if (val && (val as any).__undoInternal__) {
+                    (val as any).__undoInternal__.visit(v, this.master, this.action);
+                }
             }
         }
 
@@ -151,6 +169,7 @@ function undoInternal<T extends Class<any>, K extends keyof T> (ctor: new(...arg
             const memberDispatched = new Set<K>();
             // member decorated with @UndoDoNotTrack should be ignored
             const doNotTrack = UndoInternal.doNotTrack;
+            const doNotRecurs = UndoInternal.doNotRecurs;
             for (const [propKey, descriptor] of getAllPropertyNames<T, K>(this.target)) {
                 if (!(!descriptor.enumerable
                     || descriptor.writable === false
@@ -158,20 +177,20 @@ function undoInternal<T extends Class<any>, K extends keyof T> (ctor: new(...arg
                     || propKey === "constructor"
                     || propKey === "prototype"
                     || doNotTrack.has(propKey))) {
-                    this.dispatchAndRecurse(propKey, v);
+                    this.dispatchAndRecurse(propKey, v, !doNotRecurs.has(propKey));
                     memberDispatched.add(propKey);
                 }
             }
 
             // non enumerables
             UndoInternal.nonEnumerables.forEach((nonEnumerable: any) => {
-                this.dispatchAndRecurse(nonEnumerable, v);
+                this.dispatchAndRecurse(nonEnumerable, v, !doNotRecurs.has(nonEnumerable));
                 memberDispatched.add(nonEnumerable);
             });
 
-            for (const [propKey, history] of this.history) {
+            for (const [propKey] of this.history) {
                 if (!memberDispatched.has(propKey)) {
-                    this.dispatchAndRecurse(propKey, v);
+                    this.dispatchAndRecurse(propKey, v, !doNotRecurs.has(propKey));
                 }
             }
 
@@ -183,6 +202,7 @@ function undoInternal<T extends Class<any>, K extends keyof T> (ctor: new(...arg
         }
     }
     undoInternalClass.doNotTrack = findAncestorDecorated(doNotTrackMap, ctor) as Set<K> || new Set<K>();
+    undoInternalClass.doNotRecurs = findAncestorDecorated(doNotRecursMap, ctor) as Set<K> || new Set<K>();
     undoInternalClass.afterLoad = findAncestorDecorated(afterLoadMap, ctor) as Set<K> || new Set<K>();
     const descriptor = Object.getOwnPropertyDescriptor(
         undoInternalClass,

@@ -50,5 +50,7 @@ export function getInheritedPropertyDescriptor<T, K extends keyof T> (object: T,
 
 // associate class to property name that must be ignored by UndoRedo
 export const doNotTrackMap = new Map<any, Set<Key>>();
+// associate class to property name that must not be recused on.
+export const doNotRecursMap = new Map<any, Set<Key>>();
 // associate class to function name to be called after each undo and each redo
 export const afterLoadMap = new Map<any, Set<Key>>();

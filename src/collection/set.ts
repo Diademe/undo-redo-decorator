@@ -1,6 +1,6 @@
 "use strict";
 import { IteratorAbstract, Flag, Storage, hash, isCallable, InternalStorage } from "./utils";
-import { Undoable } from "../decorator";
+import { Undoable, UndoDoNotRecurs } from "../decorator";
 
 // tslint:disable:no-null-keyword
 
@@ -62,7 +62,9 @@ Object.defineProperty(SetIterator.prototype, Symbol.toStringTag, {
 
 @Undoable()
 class SetEntry<K> {
+    @UndoDoNotRecurs
     next: SetEntry<K>;
+    @UndoDoNotRecurs
     prev: SetEntry<K>;
     constructor(public value: K) {
         this.next = null;
