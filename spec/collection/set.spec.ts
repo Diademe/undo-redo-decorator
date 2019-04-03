@@ -1,12 +1,12 @@
 import { Set } from "../../src/collection/set";
 
-class CustomSet<K> extends Set<K> {}
-
-class Obj {
-    constructor(public a: number) {}
-}
 
 describe("map", () => {
+    class CustomSet<K> extends Set<K> {}
+
+    class Obj {
+        constructor(public a: number) {}
+    }
     function testSet<M extends Set<any>>(ctor: new (...args: any[]) => M) {
         let m: M;
         beforeEach(() => {

@@ -1,12 +1,12 @@
 import { Map } from "../../src/collection/map";
 
-class CustomMap<K, V> extends Map<K, V> {}
-
-class Obj {
-    constructor(public a: number) {}
-}
 
 describe("map", () => {
+    class CustomMap<K, V> extends Map<K, V> {}
+
+    class Obj {
+        constructor(public a: number) {}
+    }
     function testMap<M extends Map<any, any>>(ctor: new (...args: any[]) => M) {
         function mapTest<K>(initialization: [K, number][]) {
             describe("", () => {
