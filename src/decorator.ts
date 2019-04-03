@@ -86,13 +86,15 @@ function undoInternal<T extends Class<any>, K extends keyof T> (ctor: new(...arg
         public static doNotTrack: Set<K>;
         public static doNotRecurs: Set<K>;
         public static afterLoad: Set<K>;
-        public history: Map<K, History<T, K>>;
+        public history: Map<K, History<T, K>>; // associate a property key to its history
+        public historyCollection: Map<any, History<T, any>>; // associate a key to its history (map and set)
         public master: MasterIndex;
         public target: T;
         private action: number; // prevent recursion to loop
 
         constructor() {
             this.history = new Map<K, History<T, K>>();
+            this.historyCollection = new Map<any, History<T, any>>();
             this.action = -1;
         }
 
@@ -105,7 +107,16 @@ function undoInternal<T extends Class<any>, K extends keyof T> (ctor: new(...arg
         }
 
         save(propKey: K): void {
-            const value: T[K] = propKey in this.target ? this.target[propKey] : notDefined as any;
+            let value: any;
+            if (this.target instanceof Set) {
+                value = this.target.has(propKey) ? true : notDefined;
+            }
+            else if (this.target instanceof Map) {
+                value = this.target.has(propKey) ? this.target.get(propKey) : notDefined;
+            }
+            else {
+                value = propKey in this.target ? this.target[propKey] : notDefined;
+            }
             if (this.history.has(propKey)) {
                 this.history.get(propKey).set(value);
             }
@@ -121,18 +132,53 @@ function undoInternal<T extends Class<any>, K extends keyof T> (ctor: new(...arg
         }
 
         load(propKey: K) {
-            const localHistory = this.history.get(propKey);
-            if (localHistory) {
-                const val = localHistory.get();
-                if (val === notDefined) {
+            const deleteProperty = () => {
+                if (this.target instanceof Set || this.target instanceof Map) {
+                    this.target.delete(propKey);
+                }
+                else {
                     delete this.target[propKey];
                 }
-                else if (this.target[propKey] !== val) { // trick to avoid rewrite non writable property
-                    this.target[propKey] = val as T[K];
+            }
+            const get = () => { // get the property from the object
+                if (this.target instanceof Set) {
+                    return this.target.has(propKey)
+                }
+                else if (this.target instanceof Map) {
+                    return this.target.get(propKey);
+                }
+                else {
+                    return this.target[propKey];
+                }
+            }
+            const set  = (val: any) => { // set the property from the history to the object
+                if (this.target instanceof Set) {
+                    if (val) { // val is true
+                        this.target.add(propKey);
+                    }
+                    else {
+                        throw Error("You cant set a value to false in a set");
+                    }
+                }
+                else if (this.target instanceof Map) {
+                    this.target.set(propKey, val);
+                }
+                else {
+                    this.target[propKey] = val;
+                }
+            }
+            const localHistory = this.history.get(propKey);
+            if (localHistory) {
+                const valHistory = localHistory.get();
+                if (valHistory === notDefined) {
+                    deleteProperty();
+                }
+                else if (get() !== valHistory) { // trick to avoid rewrite non writable property
+                    set(valHistory);
                 }
             }
             else {
-                delete this.target[propKey];
+                deleteProperty();
             }
         }
 
@@ -167,18 +213,29 @@ function undoInternal<T extends Class<any>, K extends keyof T> (ctor: new(...arg
             this.master = master;
 
             const memberDispatched = new Set<K>();
+
             // member decorated with @UndoDoNotTrack should be ignored
             const doNotTrack = UndoInternal.doNotTrack;
             const doNotRecurs = UndoInternal.doNotRecurs;
-            for (const [propKey, descriptor] of getAllPropertyNames<T, K>(this.target)) {
-                if (!(!descriptor.enumerable
-                    || descriptor.writable === false
-                    || typeof descriptor.value === "function"
-                    || propKey === "constructor"
-                    || propKey === "prototype"
-                    || doNotTrack.has(propKey))) {
-                    this.dispatchAndRecurse(propKey, v, !doNotRecurs.has(propKey));
-                    memberDispatched.add(propKey);
+
+            if (this.target instanceof Set || this.target instanceof Map) {
+                for (const key of this.target.keys()) {
+                    this.dispatchAndRecurse(key, v, true);
+                    memberDispatched.add(key);
+                }
+            }
+            else {
+
+                for (const [propKey, descriptor] of getAllPropertyNames<T, K>(this.target)) {
+                    if (!(!descriptor.enumerable
+                        || descriptor.writable === false
+                        || typeof descriptor.value === "function"
+                        || propKey === "constructor"
+                        || propKey === "prototype"
+                        || doNotTrack.has(propKey))) {
+                        this.dispatchAndRecurse(propKey, v, !doNotRecurs.has(propKey));
+                        memberDispatched.add(propKey);
+                    }
                 }
             }
 
@@ -190,7 +247,7 @@ function undoInternal<T extends Class<any>, K extends keyof T> (ctor: new(...arg
 
             for (const [propKey] of this.history) {
                 if (!memberDispatched.has(propKey)) {
-                    this.dispatchAndRecurse(propKey, v, !doNotRecurs.has(propKey));
+                    this.dispatchAndRecurse(propKey, v, !doNotRecurs.has(propKey) && (this.target instanceof Set || this.target instanceof Map));
                 }
             }
 
