@@ -1,7 +1,7 @@
 import { MasterIndex } from "./core";
 import { Visitor } from "./type";
 
-export { Undoable, UndoDoNotTrack, UndoDoNotRecurs } from "./decorator";
+export { Undoable, UndoDoNotTrack, UndoDoNotRecurs, UndoAfterLoad } from "./decorator";
 export { Map } from "./collection/map";
 export { Set } from "./collection/set";
 
