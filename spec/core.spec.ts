@@ -1,6 +1,7 @@
 import { MasterIndex } from "../src/core";
 import { SuperArray } from "../src/type";
 import { UndoRedo, Undoable } from "../src";
+import { notDefined } from "../src/utils";
 
 describe("core", () => {
     describe("SuperArray", () => {
@@ -38,7 +39,7 @@ describe("core", () => {
         test("reverseFindIndex", () => {
             const history = new SuperArray<number>();
             history.push(0, 1, 2, 3, 4, 3, 2, 1);
-            expect(history.reverseFindIndex((e: number) => e === 6)).toBe(-1);
+            expect(history.reverseFindIndex((e: number) => e === 6)).toBe(0);
             expect(history.reverseFindIndex((e: number) => e === 4)).toBe(4);
             expect(history.reverseFindIndex((e: number) => e === 3)).toBe(5);
         });
@@ -52,19 +53,19 @@ describe("core", () => {
 
             beforeEach(() => {
                 m = new MasterIndex();
-                h = new SuperArray<[number, number]>();
+                h = new SuperArray<[number, number]>([0, notDefined]);
             });
 
             test("initial state : nothing possible", () => {
                 expect(m.redoPossible()).toBe(false);
-                expect(m.getCurrentIndex()).toBe(-1);
+                expect(m.getCurrentIndex()).toBe(0);
             });
 
             test("invalid undo parameter", () => {
-                m.saveInit()
                 m.set<Number, any>(h, 1);
                 m.saveInit()
                 m.set<Number, any>(h, 2);
+                expect(m.getCurrentIndex()).toBe(1);
                 expect(() => m.undo(-1)).toThrow();
                 expect(() => m.undo(1)).not.toThrow();
                 expect(() => m.undo(2)).toThrow();
@@ -72,7 +73,6 @@ describe("core", () => {
             });
 
             test("invalid redo parameter", () => {
-                m.saveInit(); // index = -1
                 m.set<Number, any>(h, 1); // index = 0
                 m.saveInit();
                 m.set<Number, any>(h, 2); // index = 1
@@ -86,7 +86,6 @@ describe("core", () => {
 
             test("redoPossible", () => {
                 expect(m.redoPossible()).toBe(false);
-                m.saveInit();
                 m.set<Number, any>(h, 1);
                 expect(m.redoPossible()).toBe(false);
                 expect(m.getCurrentIndex()).toBe(0);
@@ -101,7 +100,6 @@ describe("core", () => {
 
             test("maxRedoPossible", () => {
                 expect(m.maxRedoPossible()).toBe(0);
-                m.saveInit();
                 m.set<Number, any>(h, 1);
                 expect(m.maxRedoPossible()).toBe(0);
                 m.saveInit();
@@ -119,9 +117,8 @@ describe("core", () => {
 
         test("undo | redo", () => {
             const m = new MasterIndex();
-            const h = new SuperArray<[number, number]>();
-            expect(m.getCurrentIndex()).toBe(-1);
-            m.saveInit();
+            const h = new SuperArray<[number, number]>([0, notDefined]);
+            expect(m.getCurrentIndex()).toBe(0);
             m.set<Number, any>(h, 0);
             expect(h).toEqual([[0, 0]]);
 

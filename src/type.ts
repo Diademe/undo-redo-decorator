@@ -28,17 +28,22 @@ export class SuperArray<T> extends Array<T> {
         return SuperArray.from<T>(this);
     }
 
+    /**
+     * @param predicate
+     * @param from starting index
+     * @returns last index where predicate is true, 0
+     */
     public reverseFindIndex(
-        f: (elt: T, index: number, history: SuperArray<T>) => boolean,
+        predicate: (elt: T, index: number, history: SuperArray<T>) => boolean,
         from?: number
     ): number {
         from = from === undefined ? this.length - 1 : from;
         for (let index = from; index >= 0; index--) {
-            if (f(this[index], index, this)) {
+            if (predicate(this[index], index, this)) {
                 return index;
             }
         }
-        return -1;
+        return 0;
     }
 }
 

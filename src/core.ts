@@ -38,8 +38,9 @@ export class MasterIndex {
     private maxIndex: number; // highest index reach by currentIndex (if there was undo)
     private isDirty: boolean;
     constructor() {
-        this.currentIndex = -1;
+        this.currentIndex = 0;
         this.maxIndex = this.currentIndex;
+        this.isDirty = true;
     }
 
     public getCurrentIndex(): number {
@@ -112,34 +113,42 @@ export class MasterIndex {
         this.currentIndex = Math.min(index, this.maxIndex);
     }
 
+    /**
+     * @returns index where a value must be written for currentIndex
+     * @param slaveHistory must not be empty
+     */
     private findIndex<T>(slaveHistory: SuperArray<[number, T]>) {
-        if (slaveHistory.length === 0) {
-            return -1;
-        }
-        const currentSlaveIndex = slaveHistory.reverseFindIndex(
-            ([slaveIndex, obj]: [number, T]) =>
+        return slaveHistory.reverseFindIndex(
+            ([slaveIndex]: [number, T]) =>
                 slaveIndex <= this.currentIndex
         );
-        return currentSlaveIndex;
     }
 
+    /**
+     * @param slaveHistory the history where obj should be saved
+     * must not be empty (initialize it with [0, notDefined])
+     * @param obj the object to save in slaveHistory
+     */
     public set<T, K extends keyof T>(slaveHistory: SuperArray<[number, T[K] | Symbol]>, obj: T[K] | Symbol): void {
-        const indexSlave = this.findIndex(slaveHistory);
+        const indexSlaveHistory = this.findIndex(slaveHistory);
 
         // we don't write twice an item at the end of the history
-        if (indexSlave !== -1 && slaveHistory.length > 0 && equality(slaveHistory[indexSlave][1], obj)) {
+        if (equality(slaveHistory[indexSlaveHistory][1], obj)) {
             return;
         }
 
         // remove redo history
-        slaveHistory.length = indexSlave + 1;
+        slaveHistory.length = indexSlaveHistory + 1;
 
-        // slave index found but for an earlier version than master index
-        slaveHistory.length++;
         if (!this.isDirty) {
+            // last save was before currentIndex, last value should not be overwritten
             this.isDirty = true;
             this.currentIndex++;
             this.maxIndex = this.currentIndex;
+        }
+
+        if (slaveHistory[indexSlaveHistory][0] < this.currentIndex) {
+            slaveHistory.length++;
         }
         slaveHistory.last = [this.currentIndex, obj];
     }

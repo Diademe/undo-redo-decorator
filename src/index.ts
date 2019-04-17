@@ -23,7 +23,6 @@ export class UndoRedo {
     constructor(watchable?: any) {
         this.index = new MasterIndex();
         if (watchable) {
-            this.index.saveInit();
             this.internalAdd(watchable);
             this.init();
         }
@@ -39,14 +38,18 @@ export class UndoRedo {
         }
     }
 
-    add(watchable?: any) {
-        this.index.saveInit();
+    add(watchable?: any, replaceLastState = true) {
+        if (!replaceLastState) {
+            this.index.saveInit();
+        }
         this.internalAdd(watchable);
         this.init();
     }
 
-    multiAdd(watchables: any[]) {
-        this.index.saveInit();
+    multiAdd(watchables: any[], replaceLastState = true) {
+        if (!replaceLastState) {
+            this.index.saveInit();
+        }
         for (const watchable of watchables) {
             this.internalAdd(watchable)
         }

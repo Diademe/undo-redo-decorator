@@ -195,7 +195,11 @@ function undoInternal<T extends Class<any>, K extends keyof T> (ctor: new(...arg
                 if (key && (key as any).__undoInternal__) {
                     (key as any).__undoInternal__.visit(v, this.master, this.action);
                 }
-                const val = this.target[propKey];
+                // no value associated to a key for Set
+                if (this.target instanceof Set) {
+                    return;
+                }
+                const val = this.target instanceof Map ? this.target.get(key) : this.target[propKey];
                 if (val && (val as any).__undoInternal__) {
                     (val as any).__undoInternal__.visit(v, this.master, this.action);
                 }
