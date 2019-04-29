@@ -51,19 +51,25 @@ Decorate a method with `@UndoAfterLoad` to call it when an undo or a redo (ie a 
 ### UndoRedo
 This is the class that will do the monitoring of whatever you want. You need to create an instance of UndoRedo, and register the instances of classes that you want to monitor.
 
-|     Methods     |                                    Parameters                                   |
-|----------------:|:--------------------------------------------------------------------------------|
-| constructor     | watchable: an instance to monitor                                               |
-| add             | watchable: an instance to monitor (save is made after the add)                  |
-| multiAdd        | watchables: an array of instance to monitor (save is made after the add)        |
-| save            | : set the current state as a milestone                                          |
-| undo            | N?: revert to the previous milestone / go to Nth milestone (absolute)           |
-| redo            | N?: revert to the next milestone / go to Nth milestone (absolute)               |
-| getCurrentIndex | : return an integer N that can be given as parameter to go the the current state|
-| undoPossible    | boolean. True if you can perform an undo                                        |
-| redoPossible    | boolean. True if you can perform a redo                                         |
-| maxRedoPossible | : return an integer that indicates who many redo you can perform.               |
+|     Methods       |                                    Parameters                                   |
+|------------------:|:--------------------------------------------------------------------------------|
+| constructor       | watchable: an instance to monitor                                               |
+| add               | watchable: an instance to monitor (save is made after the add)                  |
+| multiAdd          | watchables: an array of instance to monitor (save is made after the add)        |
+| save              | : set the current state as a milestone                                          |
+| undo              | N?: revert to the previous milestone / go to Nth milestone (absolute)           |
+| redo              | N?: revert to the next milestone / go to Nth milestone (absolute)               |
+| getCurrentIndex   | : return an integer N that can be given as parameter to go the the current state|
+| undoPossible      | boolean. True if you can perform an undo                                        |
+| redoPossible      | boolean. True if you can perform a redo                                         |
+| maxRedoPossible   | : return an integer that indicates who many redo you can perform.               |
+| setMaxHistorySize | : set the max length history of undo redo                                       |
 
+#### setMaxHistorySize
+By default, the history of the undo redo is infinity. You can set a limit the the size of history with `setMaxHistorySize(x)`.
+If `x === 0`, then the history limit is set to infinity.
+Else if `x >= 12`, each time the history size reach `x`, it is shrieked by 1/4 of `x`, by discarding olds values.
+Otherwise, an exception is thrown. the limit of 12 is here to performance reason.
 
 ## In depth
 

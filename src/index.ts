@@ -38,7 +38,17 @@ export class UndoRedo {
         }
     }
 
-    add(watchable?: any, replaceLastState = true) {
+    private computeMinIndex(maxHistorySize: number) {
+        if (maxHistorySize !== 0 && maxHistorySize < 8) {
+            throw Error(`maxHistorySize (${maxHistorySize}) must be 0 or greater than 7`);
+        }
+        const indexSize = this.getCurrentIndex() - this.index.minIndex;
+        if (indexSize > maxHistorySize) {
+            this.index.minIndex = this.index.minIndex + maxHistorySize / 4; // discard 1/4 of old value
+        }
+    }
+
+    public add(watchable?: any, replaceLastState = true) {
         if (!replaceLastState) {
             this.index.saveInit();
         }
@@ -46,7 +56,7 @@ export class UndoRedo {
         this.init();
     }
 
-    multiAdd(watchables: any[], replaceLastState = true) {
+    public multiAdd(watchables: any[], replaceLastState = true) {
         if (!replaceLastState) {
             this.index.saveInit();
         }
@@ -96,15 +106,26 @@ export class UndoRedo {
         return this.index.getCurrentIndex() ;
     }
 
-    public undoPossible() {
+    public undoPossible(): boolean {
         return this.index.getCurrentIndex() > 0;
     }
 
-    public redoPossible() {
+    public redoPossible(): boolean {
         return this.index.redoPossible();
     }
 
-    public maxRedoPossible() {
+    public maxRedoPossible(): number {
         return this.index.maxRedoPossible();
+    }
+
+    /**
+     * set History size, 0 = no limit (default)
+     * if history reach this size, 1/4 of the old elements will be discarded
+     */
+    public setMaxHistorySize(x: number): void {
+        if (x < 0) {
+            throw new Error("the argument of setMaxHistorySize must be greater or equal to 0");
+        }
+        this.computeMinIndex(x === 0 ? Number.MAX_SAFE_INTEGER : x);
     }
 }

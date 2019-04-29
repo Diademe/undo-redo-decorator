@@ -112,6 +112,27 @@ describe("core", () => {
                 m.redo();
                 expect(m.maxRedoPossible()).toBe(0);
             });
+
+            test("setMaxHistorySize", () => {
+                m.minIndex = 4;
+                m.saveInit();
+                m.set<Number, any>(h, 1);
+                m.saveInit();
+                m.set<Number, any>(h, 2);
+                m.saveInit();
+                m.set<Number, any>(h, 3);
+                m.saveInit();
+                m.set<Number, any>(h, 4);
+                m.saveInit();
+                m.set<Number, any>(h, 5);
+                m.saveInit();
+                m.set<Number, any>(h, 6);
+                expect(h).toEqual([[0, notDefined], [4, 4], [5, 5], [6, 6]]);
+                m.minIndex = 5;
+                m.saveInit();
+                m.set<Number, any>(h, 7);
+                expect(h).toEqual([[0, notDefined], [5, 5], [6, 6], [7, 7]]);
+            });
         });
 
 

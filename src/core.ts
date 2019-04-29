@@ -34,11 +34,13 @@ export class History<T extends Class<any>, K extends keyof T> {
  * keep track of the history.
  */
 export class MasterIndex {
+    public minIndex: number; // during a set, discard element with index lower than minIndex
     private currentIndex: number; // index pointing to the correct position in the history stack
     private maxIndex: number; // highest index reach by currentIndex (if there was undo)
     private isDirty: boolean;
     constructor() {
         this.currentIndex = 0;
+        this.minIndex = 0;
         this.maxIndex = this.currentIndex;
         this.isDirty = true;
     }
@@ -151,6 +153,17 @@ export class MasterIndex {
             slaveHistory.length++;
         }
         slaveHistory.last = [this.currentIndex, obj];
+
+        // remove old entry
+        if (slaveHistory.length > 1 && slaveHistory[1][0] < this.minIndex) {
+            // the range [1, indexHoldHistory - 1] will be removed from slaveHistory
+            // the range start from 1 because slaveHistory[0] = [0, notDefined]
+            const indexHoldHistory = slaveHistory.findIndex(([index]) => index >= this.minIndex);
+            if (indexHoldHistory > 1) {
+                slaveHistory.splice(1, indexHoldHistory - 1);
+                slaveHistory[0] = [0, notDefined]; // forget the first initial state
+            }
+        }
     }
 
     /**
