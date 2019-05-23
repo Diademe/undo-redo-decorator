@@ -71,6 +71,18 @@ If `x === 0`, then the history limit is set to infinity.
 Else if `x >= 12`, each time the history size reach `x`, it is shrieked by 1/4 of `x`, by discarding olds values.
 Otherwise, an exception is thrown. the limit of 12 is here to performance reason.
 
+#### shallow save / undo / redo
+```typescript
+save(deepSave?: any[], shallowSave?: { [index: number]: any[]; }): number;
+undo(index?: number, deepSave?: any[], shallowSave?: { [index: number]: any[]; }): void;
+redo(index?: number, deepSave?: any[], shallowSave?: { [index: number]: any[]; }): void;
+```
+If `deepSave` is specified, the save will apply only on the object in the array `deepSave`, but UndoRedo will recurse on their property. If `deepSave` is not specified, the save will apply on the objects given with function `constructor`, `add`, `multiAdd`.
+The values of the dictionary `shallowSave` will be saved with `index` level of recursion (`0` mean save the object, but no recursion);
+Exemple f you want to undo only a specific object `obj` with 1 level of recursion, do the following:
+```typescript
+undo(undefined, [], {1: [obj]});
+```
 ## In depth
 
 ### Inheritance

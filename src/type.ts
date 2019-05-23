@@ -1,6 +1,7 @@
 export type Key = string | number | symbol;
 type Abstract<T> = Function & {prototype: T};
 type Constructor<T> = new (...args: any[]) => T;
+export interface ShallowSave {[index: number]: any[]};
 export type Class<T> = Abstract<T> | Constructor<T>;
 
 export enum Visitor { save, load };

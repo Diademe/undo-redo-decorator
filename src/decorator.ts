@@ -182,7 +182,7 @@ function undoInternal<T extends Class<any>, K extends keyof T> (ctor: new(...arg
             }
         }
 
-        dispatchAndRecurse(propKey: K, v: Visitor, recurse: boolean): void {
+        dispatchAndRecurse(propKey: K, v: Visitor, recurse: boolean, shallowDepth: number): void {
             if (v === Visitor.save) {
                 this.save(propKey);
             }
@@ -193,7 +193,7 @@ function undoInternal<T extends Class<any>, K extends keyof T> (ctor: new(...arg
                 // dispatch on key (example : object key of a map)
                 const key = propKey;
                 if (key && (key as any).__undoInternal__) {
-                    (key as any).__undoInternal__.visit(v, this.master, this.action);
+                    (key as any).__undoInternal__.visit(v, this.master, this.action, shallowDepth - 1);
                 }
                 // no value associated to a key for Set
                 if (this.target instanceof Set) {
@@ -201,13 +201,13 @@ function undoInternal<T extends Class<any>, K extends keyof T> (ctor: new(...arg
                 }
                 const val = this.target instanceof Map ? this.target.get(key) : this.target[propKey];
                 if (val && (val as any).__undoInternal__) {
-                    (val as any).__undoInternal__.visit(v, this.master, this.action);
+                    (val as any).__undoInternal__.visit(v, this.master, this.action, shallowDepth - 1);
                 }
             }
         }
 
-        visit(v: Visitor, master: MasterIndex, action: number): void {
-            if (this.action === action) {
+        visit(v: Visitor, master: MasterIndex, action: number, shallowDepth: number): void {
+            if (this.action === action || shallowDepth === -1) {
                 return;
             }
             this.action = action;
@@ -224,7 +224,7 @@ function undoInternal<T extends Class<any>, K extends keyof T> (ctor: new(...arg
 
             if (this.target instanceof Set || this.target instanceof Map) {
                 for (const key of this.target.keys()) {
-                    this.dispatchAndRecurse(key, v, true);
+                    this.dispatchAndRecurse(key, v, true, shallowDepth);
                     memberDispatched.add(key);
                 }
             }
@@ -237,7 +237,7 @@ function undoInternal<T extends Class<any>, K extends keyof T> (ctor: new(...arg
                         || propKey === "constructor"
                         || propKey === "prototype"
                         || doNotTrack.has(propKey))) {
-                        this.dispatchAndRecurse(propKey, v, !doNotRecurs.has(propKey));
+                        this.dispatchAndRecurse(propKey, v, !doNotRecurs.has(propKey), shallowDepth);
                         memberDispatched.add(propKey);
                     }
                 }
@@ -245,13 +245,13 @@ function undoInternal<T extends Class<any>, K extends keyof T> (ctor: new(...arg
 
             // non enumerables
             UndoInternal.nonEnumerables.forEach((nonEnumerable: any) => {
-                this.dispatchAndRecurse(nonEnumerable, v, !doNotRecurs.has(nonEnumerable));
+                this.dispatchAndRecurse(nonEnumerable, v, !doNotRecurs.has(nonEnumerable), shallowDepth);
                 memberDispatched.add(nonEnumerable);
             });
 
             for (const [propKey] of this.history) {
                 if (!memberDispatched.has(propKey)) {
-                    this.dispatchAndRecurse(propKey, v, !doNotRecurs.has(propKey) && (this.target instanceof Set || this.target instanceof Map));
+                    this.dispatchAndRecurse(propKey, v, !doNotRecurs.has(propKey) && (this.target instanceof Set || this.target instanceof Map), shallowDepth);
                 }
             }
 

@@ -161,6 +161,48 @@ describe("core", () => {
         });
     });
 
+    describe("shallow recursive", () => {
+        @Undoable()
+        class List {
+            constructor (public val = 0, public next?: List) { }
+        }
+
+        let l: List;
+        let ud: UndoRedo;
+
+        beforeEach(() => {
+            l = new List(3, new List(2, new List(1, new List (0))));
+            ud = new UndoRedo(l);
+        });
+
+        test("shallow undo redo", () => {
+            expect(l.val).toBe(3);
+            expect(l.next.val).toBe(2);
+            expect(l.next.next.val).toBe(1);
+            expect(l.next.next.next.val).toBe(0);
+            l.val = 4;
+            l.next.val = 5;
+            l.next.next.val = 6;
+            l.next.next.next.val = 7;
+            ud.save([], {0: [l]});
+            expect(l.val).toBe(4);
+            expect(l.next.val).toBe(5);
+            expect(l.next.next.val).toBe(6);
+            expect(l.next.next.next.val).toBe(7);
+            ud.undo(undefined, [], {1: [l]});
+            expect(l.val).toBe(3);
+            expect(l.next.val).toBe(2);
+            expect(l.next.next.val).toBe(6);
+            expect(l.next.next.next.val).toBe(7);
+            ud.redo(undefined, [], {2: [l]});
+            expect(l.val).toBe(4);
+            expect(l.next.val).toBe(2);
+            // only saved value is for index = 1, value saved is 1
+            expect(l.next.next.val).toBe(1);
+            expect(l.next.next.next.val).toBe(7);
+        });
+    });
+
     describe("getter setter", () => {
         @Undoable()
         class GetterSetter {

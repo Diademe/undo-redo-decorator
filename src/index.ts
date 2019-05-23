@@ -1,5 +1,6 @@
 import { MasterIndex } from "./core";
-import { Visitor } from "./type";
+import { Visitor, ShallowSave } from "./type";
+export { ShallowSave } from "./type";
 
 export { Undoable, UndoDoNotTrack, UndoDoNotRecurs, UndoAfterLoad } from "./decorator";
 export { Map } from "./collection/map";
@@ -31,7 +32,7 @@ export class UndoRedo {
     private internalAdd(watchable?: any) {
         if (watchable && (watchable as any).__undoInternal__) {
             this.watchables.push(watchable);
-            watchable.__undoInternal__.visit(Visitor.save, this.index, this.action++);
+            watchable.__undoInternal__.visit(Visitor.save, this.index, this.action++, -2);
         }
         else {
             throw Error(`${watchable} is not decorated with @Undoable()`);
@@ -66,15 +67,24 @@ export class UndoRedo {
         this.init();
     }
 
+    private applyAction(v: Visitor, deepSave?: any[], shallowSave: ShallowSave = {}) {
+        for (const watchable of deepSave ? deepSave : this.watchables) {
+            watchable.__undoInternal__.visit(v, this.index, this.action++, -2);
+        }
+        for (const index in shallowSave) {
+            for (const watchable of shallowSave[index]) {
+                watchable.__undoInternal__.visit(v, this.index, this.action++, parseInt(index));
+            }
+        }
+    }
+
     /**
      * save: the current state is saved
      * @returns the current index after the save
      */
-    public save(): number {
+    public save(deepSave?: any[], shallowSave?: ShallowSave): number {
         this.index.saveInit();
-        for (const watchable of this.watchables) {
-            watchable.__undoInternal__.visit(Visitor.save, this.index, this.action++);
-        }
+        this.applyAction(Visitor.save, deepSave, shallowSave);
         return this.index.getCurrentIndex();
     }
 
@@ -82,24 +92,22 @@ export class UndoRedo {
      * undo: go back to a previous saved state
      * @param index to which state do you want to go (default : last saved state)
      */
-    public undo(index?: number) {
+    public undo(index?: number, deepSave?: any[], shallowSave?: ShallowSave) {
         this.index.undo(index);
         this.index.loadInit();
-        for (const watchable of this.watchables) {
-            watchable.__undoInternal__.visit(Visitor.load, this.index, this.action++);
-        }
+        this.applyAction(Visitor.load, deepSave, shallowSave);
+
     }
 
     /**
      * redo: go a future saved state (possible after an undo)
      * @param index to which state do you want to go (default : last saved state)
      */
-    public redo(index?: number): void {
+    public redo(index?: number, deepSave?: any[], shallowSave?: ShallowSave): void {
         this.index.redo(index);
         this.index.loadInit();
-        for (const watchable of this.watchables) {
-            watchable.__undoInternal__.visit(Visitor.load, this.index, this.action++);
-        }
+        this.applyAction(Visitor.load, deepSave, shallowSave);
+
     }
 
     public getCurrentIndex(): number {
