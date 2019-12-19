@@ -17,7 +17,7 @@ export function equality(a: any, b: any): boolean {
     return a === b || (Number.isNaN(a) === true && Number.isNaN(b) === true);
 }
 
-export function getAllPropertyNames<T, K extends keyof T>(obj: T) {
+export function getAllPropertyNames<T, K extends keyof T>(obj: T): [K, PropertyDescriptor][] {
     const props: [K, PropertyDescriptor][] = [];
     do {
         Object.getOwnPropertyNames(obj).forEach(prop => {
@@ -38,7 +38,7 @@ export function getAllPropertyNames<T, K extends keyof T>(obj: T) {
     return props;
 }
 
-export function getInheritedPropertyDescriptor<T, K extends keyof T> (object: T, propKey: K) {
+export function getInheritedPropertyDescriptor<T, K extends keyof T> (object: T, propKey: K): PropertyDescriptor {
     let descriptor;
     let obj = object;
     do {

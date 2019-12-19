@@ -1,10 +1,11 @@
 import { MasterIndex, History } from "./core";
 import { Class, Key, Visitor } from "./type";
 import { getAllPropertyNames, doNotTrackMap, notDefined, afterLoadMap, doNotRecursMap } from "./utils";
+import { UndoInternal } from "./undoInternal";
 
 // save map (class -> non enumerable) that we need to watch
 const forceWatchMap = new Map<any, Key[]>();
-function setForceWatch(target: any, forceWatch: Key[]) {
+function setForceWatch(target: any, forceWatch: Key[]): void {
     let metaData = forceWatchMap.get(target);
     if (metaData === undefined) {
         metaData = [];
@@ -21,7 +22,7 @@ function getForceWatch<T, K extends keyof T>(target: T): K[] {
     return metaData;
 }
 
-function findAncestorDecorated(map: Map<any, Set<Key>>, ctor: any) {
+function findAncestorDecorated<K extends Key, S extends Set<K>>(map: Map<any, S>, ctor: any): S {
     // if target is associated with a set, we should not clone the set
     if (map.has(ctor)) {
         return map.get(ctor);
@@ -30,16 +31,16 @@ function findAncestorDecorated(map: Map<any, Set<Key>>, ctor: any) {
     // we should clone the set (so that child ctor doesn't impact the parent)
     while (ctor = Object.getPrototypeOf(ctor)) {
         if (map.has(ctor)) {
-            return new Set(map.get(ctor));
+            return new Set(map.get(ctor)) as S;
         }
     };
-    return new Set();
+    return new Set() as S;
 }
 
 /**
  * property decorator. Property decorated will not be monitored by Undo Redo
  */
-export function UndoDoNotTrack(target: any, propKey: Key) {
+export function UndoDoNotTrack(target: any, propKey: Key): void {
     if (typeof target[propKey] === "function") {
         console.warn("UndoDoNotTrack is unnecessary on function as they are not monitored by Undo Redo Proxy");
     }
@@ -54,7 +55,7 @@ export function UndoDoNotTrack(target: any, propKey: Key) {
  * property decorator. Property decorated will be monitored by Undo Redo, but that wont propagate the recursion
  * used to flatten the recursion
  */
-export function UndoDoNotRecurs(target: any, propKey: Key) {
+export function UndoDoNotRecurs(target: any, propKey: Key): void {
     if (typeof target[propKey] === "function") {
         console.warn("UndoDoNotRecurs is unnecessary on function as they are not monitored by Undo Redo Proxy");
     }
@@ -68,7 +69,7 @@ export function UndoDoNotRecurs(target: any, propKey: Key) {
 /**
  * Function decorator. Function decorated will be executed after each redo and after each undo.
  */
-export function UndoAfterLoad(target: any, propKey: Key) {
+export function UndoAfterLoad(target: any, propKey: Key): void {
     if (typeof target[propKey] === "function") {
         const set = findAncestorDecorated(afterLoadMap, target.constructor);
         set.add(propKey);
@@ -79,11 +80,11 @@ export function UndoAfterLoad(target: any, propKey: Key) {
     }
 }
 
-function undoInternal<T extends Class<any>, K extends keyof T> (ctor: new(...args: any[]) => T) {
-    undoInternalClass.doNotTrack = findAncestorDecorated(doNotTrackMap, ctor) as Set<K> || new Set<K>();
-    undoInternalClass.doNotRecurs = findAncestorDecorated(doNotRecursMap, ctor) as Set<K> || new Set<K>();
-    undoInternalClass.afterLoad = findAncestorDecorated(afterLoadMap, ctor) as Set<K> || new Set<K>();
+function undoInternal(ctor: new(...args: any[]) => Class<any>) {
     const undoInternalClass = UndoInternal;
+    undoInternalClass.doNotTrack = findAncestorDecorated(doNotTrackMap, ctor);
+    undoInternalClass.doNotRecurs = findAncestorDecorated(doNotRecursMap, ctor);
+    undoInternalClass.afterLoad = findAncestorDecorated(afterLoadMap, ctor);
     const descriptor = Object.getOwnPropertyDescriptor(
         undoInternalClass,
         "name"
@@ -96,9 +97,9 @@ function undoInternal<T extends Class<any>, K extends keyof T> (ctor: new(...arg
     return undoInternalClass;
 }
 
-function wrapper <T extends Class<any>, K extends keyof T>(forceWatch: K[]) {
+function wrapper(forceWatch: Key[]) {
     return (ctor: new(...args: any[]) => any) => {
-        const undoInternalClass = undoInternal<T, K>(ctor);
+        const undoInternalClass = undoInternal(ctor);
         // bug of typescript : can not extends abstract class from parameters
         const anonymousClass = class ProxyWrapper extends (ctor as any) {
             // tslint:disable-next-line:variable-name

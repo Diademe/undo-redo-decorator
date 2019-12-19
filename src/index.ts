@@ -21,6 +21,7 @@ export class UndoRedo {
             this.index.init();
         }
     }
+
     constructor(watchable?: any) {
         this.index = new MasterIndex();
         if (watchable) {
@@ -29,7 +30,7 @@ export class UndoRedo {
         }
     }
 
-    private internalAdd(watchable?: any) {
+    private internalAdd(watchable?: any): void {
         if (watchable && (watchable as any).__undoInternal__) {
             this.watchables.push(watchable);
             watchable.__undoInternal__.visit(Visitor.save, this.index, this.action++, -2);
@@ -39,7 +40,7 @@ export class UndoRedo {
         }
     }
 
-    private computeMinIndex(maxHistorySize: number) {
+    private computeMinIndex(maxHistorySize: number): void {
         if (maxHistorySize !== 0 && maxHistorySize < 8) {
             throw Error(`maxHistorySize (${maxHistorySize}) must be 0 or greater than 7`);
         }
@@ -49,7 +50,7 @@ export class UndoRedo {
         }
     }
 
-    public add(watchable?: any, replaceLastState = true) {
+    public add(watchable?: any, replaceLastState = true): void {
         if (!replaceLastState) {
             this.index.saveInit();
         }
@@ -57,7 +58,7 @@ export class UndoRedo {
         this.init();
     }
 
-    public multiAdd(watchables: any[], replaceLastState = true) {
+    public multiAdd(watchables: any[], replaceLastState = true): void {
         if (!replaceLastState) {
             this.index.saveInit();
         }
@@ -67,7 +68,7 @@ export class UndoRedo {
         this.init();
     }
 
-    private applyAction(v: Visitor, deepSave?: any[], shallowSave: ShallowSave = {}) {
+    private applyAction(v: Visitor, deepSave?: any[], shallowSave: ShallowSave = {}): void {
         for (const watchable of deepSave ? deepSave : this.watchables) {
             watchable.__undoInternal__.visit(v, this.index, this.action++, -2);
         }

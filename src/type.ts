@@ -1,8 +1,11 @@
-export type Key = string | number | symbol;
+export type Key = string | number;
 type Abstract<T> = Function & {prototype: T};
 type Constructor<T> = new (...args: any[]) => T;
 export interface ShallowSave {[index: number]: any[]};
-export type Class<T> = Abstract<T> | Constructor<T>;
+export type Class<T> = (Abstract<T> | Constructor<T>) & {
+    [key: number]: any;
+    [key: string]: any;
+};
 
 export enum Visitor { save, load };
 
@@ -25,8 +28,8 @@ export class SuperArray<T> extends Array<T> {
         return new (Function.prototype.bind.apply(SuperArray, iterables))();
     }
 
-    public clone() {
-        return SuperArray.from<T>(this);
+    public clone(): this {
+        return SuperArray.from<T>(this) as this;
     }
 
     /**
