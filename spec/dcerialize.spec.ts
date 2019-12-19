@@ -7,7 +7,8 @@ import {
     RuntimeTypingResetDictionary,
     RuntimeTypingSetTypeString,
     RuntimeTypingDisable,
-    RuntimeTypingEnable
+    RuntimeTypingEnable,
+    typeString
 } from "dcerialize";
 import { Undoable } from "../src";
 
@@ -162,21 +163,76 @@ describe("Dcerialize", () => {
         });
     });
 
-    test("runtime typing", () => {
+    test("runtime typing with RuntimeTypingSetTypeString", () => {
         @Undoable()
         class Test0 {
             @deserializeAs(() => Boolean)
             public valueA = true;
         }
+
         @Undoable()
         class Test1 {
             @deserializeAs(() => Boolean)
             public valueB = true;
         }
+
+        @Undoable()
+        @inheritSerialization(() => Test1)
+        class Test2 extends Test1 {}
+
+        @Undoable()
+        class Test3 {
+            @deserializeAs(() => Object)
+            public m1: Test0;
+            @deserializeAs(() => Test2)
+            public m2: Test1;
+        }
+
+        const s = new Test3();
+        s.m1 = new Test0();
+        s.m2 = new Test2();
+        RuntimeTypingSetTypeString(Test0, "my Test0 type");
+        RuntimeTypingSetTypeString(Test1, "my Test1 type");
+        RuntimeTypingSetTypeString(Test2, "my Test2 type");
+        RuntimeTypingSetTypeString(Test3, "my Test3 type");
+        RuntimeTypingEnable();
+        const json = Deserialize(
+            {
+                $type: "my Test3 type",
+                m1: { $type: "my Test0 type", valueA: true },
+                m2: { $type: "my Test2 type", valueB: true }
+            },
+            () => Test3
+        );
+        RuntimeTypingResetDictionary();
+        RuntimeTypingDisable();
+        expect(json instanceof Test3).toBeTruthy();
+        expect(json.m1 instanceof Test0).toBeTruthy();
+        expect(json.m2 instanceof Test1).toBeTruthy();
+    });
+
+    test("runtime typing with @typeString", () => {
+        @typeString("my Test0 type")
+        @Undoable()
+        class Test0 {
+            @deserializeAs(() => Boolean)
+            public valueA = true;
+        }
+
+        @Undoable()
+        @typeString("my Test1 type")
+        class Test1 {
+            @deserializeAs(() => Boolean)
+            public valueB = true;
+        }
+
+        @typeString("my Test2 type")
         @inheritSerialization(() => Test1)
         @Undoable()
         class Test2 extends Test1 {}
+
         @Undoable()
+        @typeString("my Test3 type")
         class Test3 {
             @deserializeAs(() => Object)
             public m1: Test0;
