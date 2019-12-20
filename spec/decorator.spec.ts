@@ -1,5 +1,5 @@
 import { Undoable, UndoDoNotTrack, UndoRedo } from "../src/index";
-import { is_constructor } from "../src/utils";
+import { is_constructor } from "./utils";
 import { UndoAfterLoad, UndoDoNotRecurs } from "../src/decorator";
 
 describe("decorator", () => {
@@ -22,11 +22,6 @@ describe("decorator", () => {
         constructor(public name: string) {}
 
         @save
-        static cloneStatic() {
-            return new Foo("default");
-        }
-
-        @save
         clone() {
             return new Foo("clone of " + this.name);
         }
@@ -38,11 +33,6 @@ describe("decorator", () => {
         foo = new Foo("foo");
     });
 
-    test("static", () => {
-        expect(db.has((foo as any).constructor.__originalConstructor__)).toBe(true);
-        expect(db.has(Foo)).toBe(true);
-    });
-
     test("nonEnumerable", () => {
         @Undoable(["A"])
         class A {}
@@ -52,10 +42,10 @@ describe("decorator", () => {
         class C extends B {}
         @Undoable(["D"])
         class D extends A {}
-        expect(((new A()) as any).__undoInternal__.constructor.nonEnumerables).toEqual(["A"]);
-        expect(((new B()) as any).__undoInternal__.constructor.nonEnumerables).toEqual(["B", "A"]);
-        expect(((new C()) as any).__undoInternal__.constructor.nonEnumerables).toEqual(["C", "B", "A"]);
-        expect(((new D()) as any).__undoInternal__.constructor.nonEnumerables).toEqual(["D", "A"]);
+        expect(((new A()) as any).constructor.prototype.__undoInternalInformation__.nonEnumerables).toEqual(["A"]);
+        expect(((new B()) as any).constructor.prototype.__undoInternalInformation__.nonEnumerables).toEqual(["A", "B"]);
+        expect(((new C()) as any).constructor.prototype.__undoInternalInformation__.nonEnumerables).toEqual(["A", "B", "C"]);
+        expect(((new D()) as any).constructor.prototype.__undoInternalInformation__.nonEnumerables).toEqual(["A", "D"]);
     });
 
     describe("After Load", () => {

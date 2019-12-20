@@ -1,19 +1,22 @@
 import { MasterIndex } from "./core";
 import { Visitor, ShallowSave } from "./type";
+import { hasUndoInternal, UndoInternal, hasUndoInternalInformation } from "./undoInternal";
 export { ShallowSave } from "./type";
-
 export { Undoable, UndoDoNotTrack, UndoDoNotRecurs, UndoAfterLoad } from "./decorator";
-export { Map } from "./collection/map";
-export { Set } from "./collection/set";
 
+/**
+ * class used as entry point for the user.
+ */
 export class UndoRedo {
+    /** The core of UndoRedo, an object can be affected to only one MasterIndex */
     private index: MasterIndex;
     private watchables: any[] = [];
+    /** the current action being processed */
     private action = 0;
     private initialized = false;
 
     /**
-     * ensure that the masterIndex has an index of 0;
+     * ensure that the masterIndex has an index of 0.
      */
     private init() {
         if (!this.initialized) {
@@ -31,8 +34,11 @@ export class UndoRedo {
     }
 
     private internalAdd(watchable?: any): void {
-        if (watchable && (watchable as any).__undoInternal__) {
-            this.watchables.push(watchable);
+        if (hasUndoInternalInformation(watchable)) {
+            if (!hasUndoInternal(watchable)) {
+                this.watchables.push(watchable);
+                UndoInternal.Initialize(watchable);
+            }
             watchable.__undoInternal__.visit(Visitor.save, this.index, this.action++, -2);
         }
         else {
@@ -50,6 +56,11 @@ export class UndoRedo {
         }
     }
 
+    /**
+     * add a watchable.
+     * @param watchable the watchable to be added to this UndoRedo.
+     * @param replaceLastState if true, the current state of the UndoRedo will be overridden.
+     */
     public add(watchable?: any, replaceLastState = true): void {
         if (!replaceLastState) {
             this.index.saveInit();
@@ -58,6 +69,11 @@ export class UndoRedo {
         this.init();
     }
 
+    /**
+     * add a list of watchable
+     * @param watchables watchables to be added to this UndoRedo.
+     * @param replaceLastState if true, the current state of the UndoRedo will be overridden.
+     */
     public multiAdd(watchables: any[], replaceLastState = true): void {
         if (!replaceLastState) {
             this.index.saveInit();

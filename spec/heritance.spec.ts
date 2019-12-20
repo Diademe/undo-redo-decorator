@@ -4,34 +4,22 @@ describe("hesitance", () => {
     @Undoable()
     class Mother {
         motherName: string;
-        nonStatic: string;
+        prop: string;
         constructor() {
             this.motherName = "mother";
-            this.nonStatic = "mother";
-        }
-        static motherStatic() {
-            return 1;
-        }
-        static staticOverridden() {
-            return 1;
+            this.prop = "mother";
         }
     }
 
     @Undoable()
     class Child extends Mother {
         childName: string;
-        nonStatic: string;
+        prop: string;
 
         constructor() {
             super();
             this.childName = "child";
-            this.nonStatic = "child";
-        }
-        static childStatic() {
-            return 0;
-        }
-        static staticOverridden() {
-            return 0;
+            this.prop = "child";
         }
     }
 
@@ -75,17 +63,9 @@ describe("hesitance", () => {
         expect(mother).toBeInstanceOf(Mother);
     });
 
-    test("static", () => {
-        expect(Child.childStatic()).toEqual(0);
-        expect(Child.staticOverridden()).toEqual(0);
-        expect(Mother.motherStatic()).toEqual(1);
-    });
-
     test("non static", () => {
         expect(child.childName).toEqual("child");
         expect(mother.motherName).toEqual("mother");
-        expect(Child.staticOverridden()).toEqual(0);
-        expect(Mother.motherStatic()).toEqual(1);
     });
 });
 
@@ -118,27 +98,23 @@ describe("hesitance with only child decorated by Undoable", () => {
 
     class Mother {
         motherName: string;
-        nonStatic: string;
+        prop: string;
         constructor() {
             this.motherName = "mother";
-            this.nonStatic = "mother";
+            this.prop = "mother";
         }
-        static motherStatic = 1;
-        static staticOverridden = 1;
     }
 
     @Undoable()
     class Child extends Mother {
         childName: string;
-        nonStatic: string;
+        prop: string;
 
         constructor() {
             super();
             this.childName = "child";
-            this.nonStatic = "child";
+            this.prop = "child";
         }
-        static childStatic = 0;
-        static staticOverridden = 0;
     }
 
     let child: Child;
@@ -150,36 +126,13 @@ describe("hesitance with only child decorated by Undoable", () => {
     });
 
     test("instanceof", () => {
-        const ud = new UndoRedo(Child);
-        Child.motherStatic = 3;
-        Child.childStatic = 3;
-        Child.staticOverridden = 3;
-        ud.save();
-        expect(Child.motherStatic).toBe(3);
-        expect(Child.childStatic).toBe(3);
-        expect(Child.staticOverridden).toBe(3);
-        ud.undo();
-        expect(Child.motherStatic).toBe(1);
-        expect(Child.childStatic).toBe(0);
-        expect(Child.staticOverridden).toBe(0);
-    });
-
-    test("instanceof", () => {
         expect(child).toBeInstanceOf(Child);
         expect(child).toBeInstanceOf(Mother);
         expect(mother).toBeInstanceOf(Mother);
     });
 
-    test("static", () => {
-        expect(Child.childStatic).toEqual(0);
-        expect(Child.staticOverridden).toEqual(0);
-        expect(Mother.motherStatic).toEqual(1);
-    });
-
-    test("non static", () => {
+    test("property", () => {
         expect(child.childName).toEqual("child");
         expect(mother.motherName).toEqual("mother");
-        expect(Child.staticOverridden).toEqual(0);
-        expect(Mother.motherStatic).toEqual(1);
     });
 });

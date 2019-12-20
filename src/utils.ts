@@ -1,22 +1,11 @@
-import { Key } from "./type";
-
-// source https://stackoverflow.com/questions/40922531/how-to-check-if-a-javascript-function-is-a-constructor
-export function is_constructor(f: any) {
-    try {
-        Reflect.construct(String, [], f);
-    }
-    catch (e) {
-        return false;
-    }
-    return true;
-}
-
 export const notDefined = Symbol("not defined");
 
+/** overload equality so NaN === NaN */
 export function equality(a: any, b: any): boolean {
     return a === b || (Number.isNaN(a) === true && Number.isNaN(b) === true);
 }
 
+/** return all properties (including non enumerable one) */
 export function getAllPropertyNames<T, K extends keyof T>(obj: T): [K, PropertyDescriptor][] {
     const props: [K, PropertyDescriptor][] = [];
     do {
@@ -37,20 +26,3 @@ export function getAllPropertyNames<T, K extends keyof T>(obj: T): [K, PropertyD
     } while ((obj = Object.getPrototypeOf(obj)));
     return props;
 }
-
-export function getInheritedPropertyDescriptor<T, K extends keyof T> (object: T, propKey: K): PropertyDescriptor {
-    let descriptor;
-    let obj = object;
-    do {
-        descriptor = Object.getOwnPropertyDescriptor(obj, propKey);
-        obj = Object.getPrototypeOf(obj);
-    } while (descriptor === undefined && obj !== null);
-    return descriptor;
-}
-
-// associate class to property name that must be ignored by UndoRedo
-export const doNotTrackMap = new Map<any, Set<Key>>();
-// associate class to property name that must not be recused on.
-export const doNotRecursMap = new Map<any, Set<Key>>();
-// associate class to function name to be called after each undo and each redo
-export const afterLoadMap = new Map<any, Set<Key>>();

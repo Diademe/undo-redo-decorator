@@ -1,7 +1,9 @@
 import { SuperArray, Class } from "./type";
 import { equality, notDefined } from "./utils";
 
-
+/**
+ * keep track of the history of value a property had
+ */
 export class History<T extends Class<any>, K extends keyof T> {
     private history: SuperArray<[number, T[K] | Symbol]>;
     constructor(private masterIndex: MasterIndex, obj: T[K]) {

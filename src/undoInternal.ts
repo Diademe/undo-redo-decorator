@@ -1,35 +1,40 @@
-import { Class, Visitor } from "./type";
+import { Class, Visitor, Key } from "./type";
 import { MasterIndex, History } from "./core";
 import { notDefined, getAllPropertyNames } from "./utils";
 
 type T = Class<any>;
 type K = keyof T;
 export class UndoInternal {
-    // watch non enumerable property of an object
-    public static nonEnumerables: K[];
-    public static doNotTrack: Set<K>;
-    public static doNotRecurs: Set<K>;
-    public static afterLoad: Set<K>;
-    public history: Map<K, History<T, K>>; // associate a property key to its history
-    public historyCollection: Map<any, History<T, K>>; // associate a key to its history (map and set)
+    /** associate a property key to its history */
+    protected history: Map<K, History<T, K>>;
+    /** associate a key to its history (map and set) */
+    protected historyCollection: Map<any, History<T, K>>;
     public master: MasterIndex;
+    /** the class being monitored */
     public target: T;
-    private action: number; // prevent recursion to loop
+    /** used to prevent recursion to loop */
+    protected action: number;
 
-    constructor() {
+    constructor(target: T) {
+        this.target = target;
         this.history = new Map<K, History<T, K>>();
         this.historyCollection = new Map<any, History<T, K>>();
         this.action = -1;
     }
 
-    inherit<T extends{history: any, master: MasterIndex, target: any, action: number}>(arg: T): T {
-        arg.history = this.history;
-        arg.master = this.master;
-        arg.target = this.target;
-        arg.action = this.action;
-        return arg;
+    /** create UndoInternal and bind it to target */
+    static Initialize(target: T) {
+        const undoInternal = new UndoInternal(target);
+        Object.defineProperty(target, "__undoInternal__", {
+            writable: false,
+            enumerable: false,
+            configurable: false,
+            value: undoInternal
+        });
     }
 
+
+    /** save the current value into the history of the propKey */
     save(propKey: K): void {
         let value: any;
         if (this.target instanceof Set) {
@@ -55,6 +60,7 @@ export class UndoInternal {
         }
     }
 
+    /** overrides the current value with the value stored in the propKey history */
     load(propKey: K) {
         const deleteProperty = () => {
             if (this.target instanceof Set || this.target instanceof Map) {
@@ -64,7 +70,8 @@ export class UndoInternal {
                 delete this.target[propKey];
             }
         }
-        const get = () => { // get the property from the object
+        /** get the property from the object */
+        const get = () => {
             if (this.target instanceof Set) {
                 return this.target.has(propKey)
             }
@@ -75,7 +82,8 @@ export class UndoInternal {
                 return this.target[propKey];
             }
         }
-        const set  = (val: any) => { // set the property from the history to the object
+        /** set the property from the history to the object */
+        const set  = (val: any) => {
             if (this.target instanceof Set) {
                 if (val) { // val is true
                     this.target.add(propKey);
@@ -116,16 +124,26 @@ export class UndoInternal {
         if (recurse) {
             // dispatch on key (example : object key of a map)
             const key = propKey;
-            if (key && (key as any).__undoInternal__) {
-                (key as any).__undoInternal__.visit(v, this.master, this.action, shallowDepth - 1);
+            // if key type is undoable
+            if (hasUndoInternalInformation(key)) {
+                // initialize key if it doesn't have undoInternal
+                if (!hasUndoInternal(key)) {
+                    UndoInternal.Initialize(key as any);
+                }
+                (key as unknown as HasUndoInternal).
+                    __undoInternal__.visit(v, this.master, this.action, shallowDepth - 1);
             }
             // no value associated to a key for Set
             if (this.target instanceof Set) {
                 return;
             }
             const val = this.target instanceof Map ? this.target.get(key) : this.target[propKey];
-            if (val && (val as any).__undoInternal__) {
-                (val as any).__undoInternal__.visit(v, this.master, this.action, shallowDepth - 1);
+            // if value type is undoable
+            if (hasUndoInternalInformation(val)) {
+                if (!hasUndoInternal(val)) {
+                    UndoInternal.Initialize(val);
+                }
+                (val as HasUndoInternal).__undoInternal__.visit(v, this.master, this.action, shallowDepth - 1);
             }
         }
     }
@@ -142,9 +160,12 @@ export class UndoInternal {
 
         const memberDispatched = new Set<K>();
 
-        // member decorated with @UndoDoNotTrack should be ignored
-        const doNotTrack = UndoInternal.doNotTrack;
-        const doNotRecurs = UndoInternal.doNotRecurs;
+        const {
+            afterLoad,
+            doNotTrack,
+            doNotRecurs,
+            nonEnumerables
+        } = this.target.constructor.prototype.__undoInternalInformation__ as UndoInternalInformation;
 
         if (this.target instanceof Set || this.target instanceof Map) {
             for (const key of this.target.keys()) {
@@ -153,13 +174,13 @@ export class UndoInternal {
             }
         }
         else {
-
             for (const [propKey, descriptor] of getAllPropertyNames<T, K>(this.target)) {
                 if (!(!descriptor.enumerable
                     || descriptor.writable === false
                     || typeof descriptor.value === "function"
                     || propKey === "constructor"
                     || propKey === "prototype"
+                    // member decorated with @UndoDoNotTrack should be ignored
                     || doNotTrack.has(propKey))) {
                     this.dispatchAndRecurse(propKey, v, !doNotRecurs.has(propKey), shallowDepth);
                     memberDispatched.add(propKey);
@@ -168,10 +189,11 @@ export class UndoInternal {
         }
 
         // non enumerables
-        UndoInternal.nonEnumerables.forEach((nonEnumerable: any) => {
+        for (const nonEnumerable of nonEnumerables) {
             this.dispatchAndRecurse(nonEnumerable, v, !doNotRecurs.has(nonEnumerable), shallowDepth);
             memberDispatched.add(nonEnumerable);
-        });
+
+        }
 
         for (const [propKey] of this.history) {
             if (!memberDispatched.has(propKey)) {
@@ -179,10 +201,81 @@ export class UndoInternal {
             }
         }
 
+        // afterLoad
         if (v === Visitor.load) {
-            for (const propKey of UndoInternal.afterLoad) {
+            for (const propKey of afterLoad) {
                 (this.target as any)[propKey]();
             }
         }
     }
+}
+
+/**
+ * each undoable (target) class has a member __undoInternalInformation__ containing an instance of this class.
+ * it carry information that are revalant a class level (which property to not track for example).
+ */
+export class UndoInternalInformation {
+    public nonEnumerables: Key[];
+    public doNotTrack: Set<Key>;
+    public doNotRecurs: Set<Key>;
+    public afterLoad: Set<Key>;
+
+    constructor(baseCtor: Function) {
+        if (baseCtor.prototype.__undoInternalInformation__) {
+            this.clone(baseCtor.prototype.__undoInternalInformation__)
+        }
+        else {
+            this.nonEnumerables = [];
+            this.doNotTrack = new Set();
+            this.doNotRecurs = new Set();
+            this.afterLoad = new Set();
+        }
+
+    }
+
+    /**
+     * extends information from the target class
+     * @param from the constructor of the target class
+     */
+    protected clone(from: UndoInternalInformation) {
+        this.nonEnumerables = [...from.nonEnumerables];
+        this.doNotTrack = new Set(from.doNotTrack);
+        this.doNotRecurs = new Set(from.doNotRecurs);
+        this.afterLoad = new Set(from.afterLoad);
+    }
+
+    /**
+     * add to the non enumerable list ot the target class
+     * @param arg non enumerable key to be watched
+     */
+    public addNonEnumerables(arg: Key[]) {
+        this.nonEnumerables.push(...arg);
+    }
+}
+
+/**
+ * if ctor doesn't have `__undoInternalInformation__`, create it. it is created regardless of
+ * `__undoInternalInformation__` being inherited
+ * @param ctor the target class to which the `__undoInternalInformation__` will be added
+ */
+export function initUndoInternalInformation(ctor: Function) {
+    if (!Object.getOwnPropertyDescriptor(ctor.prototype, "__undoInternalInformation__")) {
+        Object.defineProperty(ctor.prototype, "__undoInternalInformation__", {
+            enumerable: false,
+            value: new UndoInternalInformation(ctor)
+        });
+    }
+}
+
+export function hasUndoInternalInformation(instance: any): boolean {
+    return !!(instance?.constructor.prototype.__undoInternalInformation__);
+}
+
+
+interface HasUndoInternal {
+    __undoInternal__: UndoInternal;
+}
+
+export function hasUndoInternal(instance: HasUndoInternal | any): instance is HasUndoInternal {
+    return instance?.__undoInternal__ instanceof UndoInternal;
 }
