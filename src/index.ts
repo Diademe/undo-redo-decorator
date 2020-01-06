@@ -149,7 +149,7 @@ export class UndoRedo {
      */
     public setMaxHistorySize(x: number): void {
         if (x < 0) {
-            throw new Error("the argument of setMaxHistorySize must be greater or equal to 0");
+            throw new Error(`the argument (${x}) of setMaxHistorySize must be greater or equal to 0`);
         }
         this.computeMinIndex(x === 0 ? Number.MAX_SAFE_INTEGER : x);
     }
