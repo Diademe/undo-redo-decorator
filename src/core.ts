@@ -24,6 +24,11 @@ export class History<T extends Class<any>, K extends keyof T> {
         this.masterIndex.set(this.history, obj);
     }
 
+    collapse(): void {
+        const valueToKeep = this.get();
+        this.masterIndex.collapse(this.history, valueToKeep);
+    }
+
     clone(): this {
         const res = Object.create(Object.getPrototypeOf(this));
         res.masterIndex = this.masterIndex;
@@ -40,6 +45,11 @@ export class MasterIndex {
     private currentIndex: number; // index pointing to the correct position in the history stack
     private maxIndex: number; // highest index reach by currentIndex (if there was undo)
     private isDirty: boolean;
+    private collapseTo: number;
+    public setCollapseTo(value: number): void {
+        this.collapseTo = value;
+        this.maxIndex = this.currentIndex;
+    }
     constructor() {
         this.currentIndex = 0;
         this.minIndex = 0;
@@ -107,12 +117,7 @@ export class MasterIndex {
             index < this.currentIndex ||
             index > this.maxIndex
         ) {
-            throw Error(
-                "redo(i): i should be greater than getCurrentIndex() but i=" +
-                    index +
-                    " > " +
-                    this.getCurrentIndex()
-            );
+            throw Error(`redo(i): i (${index}) should be greater than getCurrentIndex() (${this.getCurrentIndex()}) `);
         }
         this.currentIndex = Math.min(index, this.maxIndex);
     }
@@ -166,6 +171,21 @@ export class MasterIndex {
                 slaveHistory[0] = [0, notDefined]; // forget the first initial state
             }
         }
+    }
+
+    public collapse<T, K extends keyof T>(
+            slaveHistory: SuperArray<[number, T[K] | Symbol]>,
+            valueToKeep: T[K] | Symbol
+        ): void {
+        const realCurrentIndex = this.currentIndex;
+        this.currentIndex = this.collapseTo;
+        this.set(slaveHistory, valueToKeep);
+        this.currentIndex = realCurrentIndex;
+    }
+
+    public collapseDone(): void {
+        this.currentIndex = this.collapseTo;
+        this.maxIndex = this.collapseTo;
     }
 
     /**

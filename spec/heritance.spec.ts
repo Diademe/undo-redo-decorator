@@ -63,7 +63,7 @@ describe("hesitance", () => {
         expect(mother).toBeInstanceOf(Mother);
     });
 
-    test("non static", () => {
+    test("property", () => {
         expect(child.childName).toEqual("child");
         expect(mother.motherName).toEqual("mother");
     });

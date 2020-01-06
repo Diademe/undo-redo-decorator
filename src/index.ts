@@ -113,7 +113,6 @@ export class UndoRedo {
         this.index.undo(index);
         this.index.loadInit();
         this.applyAction(Visitor.load, deepSave, shallowSave);
-
     }
 
     /**
@@ -124,7 +123,25 @@ export class UndoRedo {
         this.index.redo(index);
         this.index.loadInit();
         this.applyAction(Visitor.load, deepSave, shallowSave);
+    }
 
+    /**
+     * merge history from now to index
+     * @param index collapse to this index
+     */
+    public collapse(index: number, deepSave?: any[], shallowSave?: ShallowSave): number {
+        const currentIndex = this.index.getCurrentIndex();
+        if (index > currentIndex) {
+            throw new Error(`the argument (${index}) of collapse must be lesser or equal to the current index (${currentIndex})`);
+        }
+        else if (index < currentIndex) {
+            this.index.setCollapseTo(index);
+            this.index.loadInit();
+            this.applyAction(Visitor.collapse, deepSave, shallowSave);
+            this.index.collapseDone();
+        }
+        // else collapse to the current step, noting to do
+        return this.index.getCurrentIndex();
     }
 
     public getCurrentIndex(): number {

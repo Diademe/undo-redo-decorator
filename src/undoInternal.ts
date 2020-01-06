@@ -33,6 +33,9 @@ export class UndoInternal {
         });
     }
 
+    collapse(propKey: K): void {
+        this.history.get(propKey).collapse();
+    }
 
     /** save the current value into the history of the propKey */
     save(propKey: K): void {
@@ -120,6 +123,9 @@ export class UndoInternal {
         }
         else if (v === Visitor.load) {
             this.load(propKey);
+        }
+        else if (v === Visitor.collapse) {
+            this.collapse(propKey);
         }
         if (recurse) {
             // dispatch on key (example : object key of a map)

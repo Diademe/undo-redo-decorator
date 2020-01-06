@@ -66,13 +66,14 @@ This is the class that will do the monitoring of whatever you want. You need to 
 | constructor     | watchable: an instance to monitor                                               |
 | add             | watchable: an instance to monitor (save is made after the add)                  |
 | multiAdd        | watchables: an array of instance to monitor (save is made after the add)        |
-| save            | set the current state as a milestone                                          |
+| save            | set the current state as a milestone                                            |
 | undo            | N?: revert to the previous milestone / go to Nth milestone (absolute)           |
 | redo            | N?: revert to the next milestone / go to Nth milestone (absolute)               |
-| getCurrentIndex | return an integer N that can be given as parameter to go to the current state|
+| collapse        | N: collapse state up to N (ie merge last state to the state N)                  |
+| getCurrentIndex | return an integer N that can be given as parameter to go to the current state   |
 | undoPossible    | boolean. True if you can perform an undo                                        |
 | redoPossible    | boolean. True if you can perform a redo                                         |
-| maxRedoPossible | return an integer that indicates how many redo you can perform.               |
+| maxRedoPossible | return an integer that indicates how many redo you can perform.                 |
 
 #### setMaxHistorySize
 

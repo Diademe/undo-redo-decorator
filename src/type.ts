@@ -8,7 +8,11 @@ export type Class<T> = (Abstract<T> | Constructor<T>) & {
 
 export interface ShallowSave {[index: number]: any[]};
 
-export enum Visitor { save, load };
+export enum Visitor {
+    save,
+    load,
+    collapse
+};
 
 export class SuperArray<T> extends Array<T> {
     constructor(...args: any[]) {
