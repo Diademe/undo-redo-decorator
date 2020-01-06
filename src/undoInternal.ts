@@ -272,7 +272,7 @@ export function hasUndoInternalInformation(instance: any): boolean {
 }
 
 
-interface HasUndoInternal {
+export interface HasUndoInternal {
     __undoInternal__: UndoInternal;
 }
 

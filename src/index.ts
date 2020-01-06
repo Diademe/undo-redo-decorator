@@ -1,6 +1,6 @@
 import { MasterIndex } from "./core";
 import { Visitor, ShallowSave } from "./type";
-import { hasUndoInternal, UndoInternal, hasUndoInternalInformation } from "./undoInternal";
+import { hasUndoInternal, UndoInternal, hasUndoInternalInformation, HasUndoInternal } from "./undoInternal";
 export { ShallowSave } from "./type";
 export { Undoable, UndoDoNotTrack, UndoDoNotRecurs, UndoAfterLoad } from "./decorator";
 
@@ -86,11 +86,11 @@ export class UndoRedo {
 
     private applyAction(v: Visitor, deepSave?: any[], shallowSave: ShallowSave = {}): void {
         for (const watchable of deepSave ? deepSave : this.watchables) {
-            watchable.__undoInternal__.visit(v, this.index, this.action++, -2);
+            (watchable as HasUndoInternal).__undoInternal__.visit(v, this.index, this.action++, -2);
         }
         for (const index in shallowSave) {
             for (const watchable of shallowSave[index]) {
-                watchable.__undoInternal__.visit(v, this.index, this.action++, parseInt(index));
+                (watchable as HasUndoInternal).__undoInternal__.visit(v, this.index, this.action++, parseInt(index));
             }
         }
     }
