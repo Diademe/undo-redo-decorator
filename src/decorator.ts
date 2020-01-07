@@ -1,5 +1,5 @@
 import { UndoInternalInformation, initUndoInternalInformation } from "./undoInternal";
-import { Key } from "./type";
+import { Key, Class } from "./type";
 
 
 /**
@@ -49,7 +49,7 @@ export function UndoAfterLoad(target: any, propKey: Key): void {
 export function Undoable(
     forceWatch: Key[] = []
 ) {
-    return (baseCtor: new(...args: any[]) => any) => {
+    return <T>(baseCtor: Class<T>) => {
         // in case no decorator were applied, we must create `__undoInternalInformation__`
         initUndoInternalInformation(baseCtor);
         // set non enumerables members that UndoRedo should watch.
