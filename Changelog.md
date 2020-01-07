@@ -4,6 +4,8 @@
 
 ### Added
 
+- `collapse(N)`: you can collapse states (states are created by calling `save()`) from `N` to the last state
+
 ### Changed
 
 ### Removed
