@@ -274,7 +274,7 @@ export function initUndoInternalInformation(ctor: Function) {
 }
 
 export function hasUndoInternalInformation(instance: any): boolean {
-    return !!(instance?.constructor.prototype.__undoInternalInformation__);
+    return !!(instance && instance.constructor.prototype.__undoInternalInformation__);
 }
 
 
@@ -283,5 +283,5 @@ export interface HasUndoInternal {
 }
 
 export function hasUndoInternal(instance: HasUndoInternal | any): instance is HasUndoInternal {
-    return instance?.__undoInternal__ instanceof UndoInternal;
+    return instance && instance.__undoInternal__ instanceof UndoInternal;
 }
