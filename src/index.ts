@@ -39,7 +39,7 @@ export class UndoRedo {
                 this.watchables.push(watchable);
                 UndoInternal.Initialize(watchable);
             }
-            watchable.__undoInternal__.visit(Visitor.save, this.index, this.action++, -2);
+            (watchable as HasUndoInternal).__undoInternal__.visit(Visitor.save, this.index, this.action++, -2);
         }
         else {
             throw Error(`${watchable} is not decorated with @Undoable()`);
@@ -86,11 +86,27 @@ export class UndoRedo {
 
     private applyAction(v: Visitor, deepSave?: any[], shallowSave: ShallowSave = {}): void {
         for (const watchable of deepSave ? deepSave : this.watchables) {
-            (watchable as HasUndoInternal).__undoInternal__.visit(v, this.index, this.action++, -2);
+            if (hasUndoInternalInformation(watchable)) {
+                if (!hasUndoInternal(watchable)) {
+                    UndoInternal.Initialize(watchable);
+                }
+                (watchable as HasUndoInternal).__undoInternal__.visit(v, this.index, this.action++, -2);
+            }
+            else {
+                throw Error(`${watchable} is not decorated with @Undoable()`);
+            }
         }
         for (const index in shallowSave) {
             for (const watchable of shallowSave[index]) {
-                (watchable as HasUndoInternal).__undoInternal__.visit(v, this.index, this.action++, parseInt(index));
+                if (hasUndoInternalInformation(watchable)) {
+                    if (!hasUndoInternal(watchable)) {
+                        UndoInternal.Initialize(watchable);
+                    }
+                    (watchable as HasUndoInternal).__undoInternal__.visit(v, this.index, this.action++, parseInt(index));
+                }
+                else {
+                    throw Error(`${watchable} is not decorated with @Undoable()`);
+                }
             }
         }
     }
