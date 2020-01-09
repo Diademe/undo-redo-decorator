@@ -33,22 +33,37 @@ export class UndoInternal {
         });
     }
 
+    protected getValueFromTarget(propKey: K): any {
+        if (this.target instanceof Set) {
+            return this.target.has(propKey) ? true : notDefined;
+        }
+        else if (this.target instanceof Map) {
+            return this.target.has(propKey) ? this.target.get(propKey) : notDefined;
+        }
+        else {
+            return propKey in this.target ? this.target[propKey] : notDefined;
+        }
+    }
+
     collapse(propKey: K): void {
-        this.history.get(propKey).collapse();
+        const value = this.getValueFromTarget(propKey);
+        if (this.history.has(propKey)) {
+            this.history.get(propKey).collapse(value);
+        }
+        else {
+            this.history.set(
+                propKey,
+                new History<T, K>(
+                    this.master,
+                    value
+                )
+            );
+        }
     }
 
     /** save the current value into the history of the propKey */
     save(propKey: K): void {
-        let value: any;
-        if (this.target instanceof Set) {
-            value = this.target.has(propKey) ? true : notDefined;
-        }
-        else if (this.target instanceof Map) {
-            value = this.target.has(propKey) ? this.target.get(propKey) : notDefined;
-        }
-        else {
-            value = propKey in this.target ? this.target[propKey] : notDefined;
-        }
+        const value = this.getValueFromTarget(propKey);
         if (this.history.has(propKey)) {
             this.history.get(propKey).set(value);
         }

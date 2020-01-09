@@ -24,8 +24,7 @@ export class History<T extends Class<any>, K extends keyof T> {
         this.masterIndex.set(this.history, obj);
     }
 
-    collapse(): void {
-        const valueToKeep = this.get();
+    collapse(valueToKeep: T[K] | Symbol): void {
         this.masterIndex.collapse(this.history, valueToKeep);
     }
 
@@ -45,16 +44,20 @@ export class MasterIndex {
     private currentIndex: number; // index pointing to the correct position in the history stack
     private maxIndex: number; // highest index reach by currentIndex (if there was undo)
     private isDirty: boolean;
-    private collapseTo: number;
-    public setCollapseTo(value: number): void {
-        this.collapseTo = value;
-        this.maxIndex = this.currentIndex;
-    }
+
     constructor() {
         this.currentIndex = 0;
         this.minIndex = 0;
         this.maxIndex = this.currentIndex;
         this.isDirty = true;
+    }
+
+    public collapseInit(collapseTo: number): void {
+        this.currentIndex = collapseTo;
+    }
+
+    public collapseDone(collapseTo: number): void {
+        this.maxIndex = collapseTo;
     }
 
     public getCurrentIndex(): number {
@@ -175,17 +178,25 @@ export class MasterIndex {
 
     public collapse<T, K extends keyof T>(
             slaveHistory: SuperArray<[number, T[K] | Symbol]>,
-            valueToKeep: T[K] | Symbol
+            obj: T[K] | Symbol
         ): void {
-        const realCurrentIndex = this.currentIndex;
-        this.currentIndex = this.collapseTo;
-        this.set(slaveHistory, valueToKeep);
-        this.currentIndex = realCurrentIndex;
-    }
+        // find where we have to collapse in slaveHistory
+        const indexSlaveHistory = this.findIndex(slaveHistory);
 
-    public collapseDone(): void {
-        this.currentIndex = this.collapseTo;
-        this.maxIndex = this.collapseTo;
+        // remove redo history
+        slaveHistory.length = indexSlaveHistory + 1;
+
+        // we don't write twice an item at the end of the history
+        if (equality(slaveHistory[indexSlaveHistory][1], obj)) {
+            return;
+        }
+
+        if (slaveHistory[indexSlaveHistory][0] < this.currentIndex) {
+            // we need to create a new entry in slaveHistory
+            slaveHistory.length++;
+        }
+        // else we override the last value because slaveHistory.last corresponds to the index we collapse to.
+        slaveHistory.last = [this.currentIndex, obj];
     }
 
     /**

@@ -151,10 +151,10 @@ export class UndoRedo {
             throw new Error(`the argument (${index}) of collapse must be lesser or equal to the current index (${currentIndex})`);
         }
         else if (index < currentIndex) {
-            this.index.setCollapseTo(index);
+            this.index.collapseInit(index);
             this.index.loadInit();
             this.applyAction(Visitor.collapse, deepSave, shallowSave);
-            this.index.collapseDone();
+            this.index.collapseDone(index);
         }
         // else collapse to the current step, noting to do
         return this.index.getCurrentIndex();
