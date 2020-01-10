@@ -6,6 +6,7 @@
     "types": "./dist/index.d.ts",
     "scripts": {
         "build": "tsc --project src/tsconfig.json",
+        "prepublish": "npm run build",
         "test": "jest --color --silent",
         "test:watch": "jest --color --silent --watch",
         "coverage": "jest --coverage",
