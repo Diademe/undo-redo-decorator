@@ -36,6 +36,29 @@ describe("collapse", () => {
         expect(ud.maxRedoPossible()).toBe(0);
     });
 
+    test("collapse to > current index", () => {
+        @Undoable()
+        class Test {
+            prop: number;
+            constructor() {
+                this.prop = 0;
+            }
+        }
+        const t = new Test();
+        const ud = new UndoRedo(t);
+        ud.save();
+        expect(t.prop).toBe(0);
+        expect(ud.getCurrentIndex()).toBe(0);
+
+        t.prop = 42
+        expect(t.prop).toBe(42);
+
+        ud.collapse(5);
+        expect(t.prop).toBe(42);
+        expect(ud.getCurrentIndex()).toBe(5);
+        expect(ud.maxRedoPossible()).toBe(0);
+    });
+
     // test what append if we made an undo before the collapse
     test("while being in a undoable state", () => {
         @Undoable()

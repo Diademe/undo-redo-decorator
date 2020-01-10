@@ -143,19 +143,13 @@ export class UndoRedo {
 
     /**
      * merge history from now to index
-     * @param index collapse to this index
+     * @param index collapse to this index (if `index` > current Index, then curent index become index)
      */
     public collapse(index: number, deepSave?: any[], shallowSave?: ShallowSave): number {
-        const currentIndex = this.index.getCurrentIndex();
-        if (index > currentIndex) {
-            throw new Error(`the argument (${index}) of collapse must be lesser or equal to the current index (${currentIndex})`);
-        }
-        else if (index < currentIndex) {
-            this.index.collapseInit(index);
-            this.index.loadInit();
-            this.applyAction(Visitor.collapse, deepSave, shallowSave);
-            this.index.collapseDone(index);
-        }
+        this.index.collapseInit(index);
+        this.index.loadInit();
+        this.applyAction(Visitor.collapse, deepSave, shallowSave);
+        this.index.collapseDone(index);
         // else collapse to the current step, noting to do
         return this.index.getCurrentIndex();
     }
