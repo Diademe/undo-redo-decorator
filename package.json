@@ -5,13 +5,13 @@
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "scripts": {
-        "build": "tsc --project src/tsconfig.json",
+        "build": "tsc --project src/tsconfig.app.json",
         "prepublish": "npm run build",
         "test": "jest --color --silent",
         "test:watch": "jest --color --silent --watch",
         "coverage": "jest --coverage",
         "test:debug": "node --inspect-brk node_modules/.bin/jest --runInBand",
-        "lint": "tslint -c tslint.json 'src/**/*.ts' && tslint -c tslint.json 'spec/**/*.ts'"
+        "lint": "tslint --config ./tslint.json -p src/tsconfig.app.json -p spec/tsconfig.spec.json"
     },
     "repository": {
         "type": "git",
