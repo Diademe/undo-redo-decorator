@@ -12,3 +12,4 @@ dist
 /clover.xml
 /coverage-final.json
 /lcov.info
+/spec/coverage
