@@ -7,7 +7,6 @@
     "scripts": {
         "build": "tsc --project src/tsconfig.app.json",
         "prepublish": "npm run build",
-        "test:watch": "jest --color --silent --watch",
         "test": "jest --config spec/jest.config.js --color --silent",
         "coverage": "jest --config spec/jest.config.js --coverage",
         "test:debug": "node --inspect-brk node_modules/.bin/jest --runInBand",
