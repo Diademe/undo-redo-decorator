@@ -7,9 +7,9 @@
     "scripts": {
         "build": "tsc --project src/tsconfig.app.json",
         "prepublish": "npm run build",
-        "test": "jest --color --silent",
         "test:watch": "jest --color --silent --watch",
-        "coverage": "jest --coverage",
+        "test": "jest --config spec/jest.config.js --color --silent",
+        "coverage": "jest --config spec/jest.config.js --coverage",
         "test:debug": "node --inspect-brk node_modules/.bin/jest --runInBand",
         "lint": "tslint --config ./tslint.json -p src/tsconfig.app.json -p spec/tsconfig.spec.json"
     },
@@ -27,24 +27,6 @@
         "tslint": "^5.20.1",
         "tslint-eslint-rules": "^5.4.0",
         "typescript": "~3.6.0"
-    },
-    "jest": {
-        "testRegex": "/spec/.*\\.spec\\.([tj]sx?)$",
-        "transform": {
-            "^.+\\.tsx?$": "ts-jest"
-        },
-        "moduleFileExtensions": [
-            "ts",
-            "tsx",
-            "js",
-            "jsx"
-        ],
-        "collectCoverageFrom": [
-            "src/**/*.ts",
-            "spec/**/*.ts"
-        ],
-        "coverageDirectory": "./dist/",
-        "testURL": "http://localhost"
     },
     "dependencies": {}
 }
