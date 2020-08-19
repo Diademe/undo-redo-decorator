@@ -8,6 +8,10 @@
 
 ### Removed
 
+## [1.5.1]
+
+module: from "commonjs" to "ES2020" for angular 10 compatibility.
+
 ## [1.5.0]
 
 ### Added
