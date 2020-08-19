@@ -50,7 +50,7 @@ describe("collapse", () => {
         expect(t.prop).toBe(0);
         expect(ud.getCurrentIndex()).toBe(0);
 
-        t.prop = 42
+        t.prop = 42;
         expect(t.prop).toBe(42);
 
         ud.collapse(5);
@@ -171,7 +171,7 @@ describe("collapse", () => {
         expect(ud.getCurrentIndex()).toBe(1);
         expect(ud.maxRedoPossible()).toBe(0);
 
-        ud.undo()
+        ud.undo();
         expect(ud.getCurrentIndex()).toBe(0);
         expect(t.prop1).toBe(0);
         expect(t.prop2).toBe("a");

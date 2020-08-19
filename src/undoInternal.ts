@@ -87,11 +87,11 @@ export class UndoInternal {
             else {
                 delete this.target[propKey];
             }
-        }
+        };
         /** get the property from the object */
         const get = () => {
             if (this.target instanceof Set) {
-                return this.target.has(propKey)
+                return this.target.has(propKey);
             }
             else if (this.target instanceof Map) {
                 return this.target.get(propKey);
@@ -99,9 +99,9 @@ export class UndoInternal {
             else {
                 return this.target[propKey];
             }
-        }
+        };
         /** set the property from the history to the object */
-        const set  = (val: any) => {
+        const set = (val: any) => {
             if (this.target instanceof Set) {
                 if (val) { // val is true
                     this.target.add(propKey);
@@ -116,7 +116,7 @@ export class UndoInternal {
             else {
                 this.target[propKey] = val;
             }
-        }
+        };
         const localHistory = this.history.get(propKey);
         if (localHistory) {
             const valHistory = localHistory.get();
@@ -243,7 +243,7 @@ export class UndoInternalInformation {
 
     constructor(baseCtor: Function) {
         if (baseCtor.prototype.__undoInternalInformation__) {
-            this.clone(baseCtor.prototype.__undoInternalInformation__)
+            this.clone(baseCtor.prototype.__undoInternalInformation__);
         }
         else {
             this.nonEnumerables = [];

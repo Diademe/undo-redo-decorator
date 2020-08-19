@@ -108,7 +108,7 @@ describe("decorator", () => {
                 constructor() {
                     super();
                     this.childDNT = 43;
-                    this.childDoTrack = 18
+                    this.childDoTrack = 18;
                 }
             }
             const childTest = new ChildTest();
@@ -146,7 +146,7 @@ describe("decorator", () => {
                 constructor() {
                     super();
                     this.childDNT = 43;
-                    this.childDoTrack = 18
+                    this.childDoTrack = 18;
                 }
             }
             const childTest = new ChildTest();

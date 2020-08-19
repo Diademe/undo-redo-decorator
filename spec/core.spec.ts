@@ -11,7 +11,7 @@ describe("core", () => {
             val = [1];
             a = new SuperArray();
             a.push(val);
-        })
+        });
         test("from", () => {
             const b = SuperArray.from(val);
             expect(b).toBeInstanceOf(SuperArray);
@@ -63,7 +63,7 @@ describe("core", () => {
 
             test("invalid undo parameter", () => {
                 m.set<Number, any>(h, 1);
-                m.saveInit()
+                m.saveInit();
                 m.set<Number, any>(h, 2);
                 expect(m.getCurrentIndex()).toBe(1);
                 expect(() => m.undo(-1)).toThrow();
@@ -232,7 +232,7 @@ describe("core", () => {
         test("get set", () => {
             expect(getSet.SGMember).toBeNaN();
             getSet.SGMember = 1;
-            ud.save()
+            ud.save();
             expect(getSet.SGMember).toBe(2);
             expect(ud.getCurrentIndex()).toBe(1);
             ud.undo();

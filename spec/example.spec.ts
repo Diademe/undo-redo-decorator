@@ -9,7 +9,7 @@ class Fifo<T> extends Array<T> {
         return this[this.length - 1];
     }
     add(arg: T) {
-        this.push(arg)
+        this.push(arg);
     }
     remove(): T {
         return this.pop();
@@ -50,7 +50,7 @@ class LinkedList<T> {
         while (elt.next !== undefined && elt.next !== list) {
             elt = elt.next;
         }
-        return elt
+        return elt;
     }
 }
 

@@ -112,7 +112,7 @@ describe("immutable", () => {
                 x.set(2, "2");
                 ud.save();
                 expect(Array.from(x.entries())).toEqual([[1, "1"], [2, "2"]]);
-                ud.undo()
+                ud.undo();
                 expect(Array.from(x.entries())).toEqual([[1, "1"]]);
                 ud.save();
                 ud.redo();
@@ -226,7 +226,7 @@ describe("immutable", () => {
             });
             test("length 3", () => {
                 expect(x.length).toEqual(3);
-                x.pop()
+                x.pop();
                 expect(x.length).toEqual(2);
                 ud.save();
                 ud.save();

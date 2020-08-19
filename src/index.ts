@@ -79,7 +79,7 @@ export class UndoRedo {
             this.index.saveInit();
         }
         for (const watchable of watchables) {
-            this.internalAdd(watchable)
+            this.internalAdd(watchable);
         }
         this.init();
     }

@@ -6,13 +6,15 @@ export type Class<T> = (Abstract<T> | Constructor<T>) & {
     [key: string]: any;
 };
 
-export interface ShallowSave {[index: number]: any[]};
+export interface ShallowSave {
+    [index: number]: any[];
+}
 
 export enum Visitor {
     save,
     load,
     collapse
-};
+}
 
 export class SuperArray<T> extends Array<T> {
     constructor(...args: any[]) {

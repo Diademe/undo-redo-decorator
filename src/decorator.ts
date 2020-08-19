@@ -55,5 +55,5 @@ export function Undoable(
         // set non enumerables members that UndoRedo should watch.
         (baseCtor.prototype.__undoInternalInformation__ as UndoInternalInformation).
             addNonEnumerables(forceWatch);
-    }
+    };
 }
