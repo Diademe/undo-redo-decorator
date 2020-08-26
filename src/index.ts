@@ -90,7 +90,7 @@ export class UndoRedo {
                 if (!hasUndoInternal(watchable)) {
                     UndoInternal.Initialize(watchable);
                 }
-                (watchable as HasUndoInternal).__undoInternal__.visit(v, this.index, this.action++, -2);
+                (watchable as HasUndoInternal).__undoInternal__.visit(v, this.index, this.action, -2);
             }
             else {
                 throw Error(`${watchable} is not decorated with @Undoable()`);
@@ -102,13 +102,14 @@ export class UndoRedo {
                     if (!hasUndoInternal(watchable)) {
                         UndoInternal.Initialize(watchable);
                     }
-                    (watchable as HasUndoInternal).__undoInternal__.visit(v, this.index, this.action++, parseInt(index));
+                    (watchable as HasUndoInternal).__undoInternal__.visit(v, this.index, this.action, parseInt(index));
                 }
                 else {
                     throw Error(`${watchable} is not decorated with @Undoable()`);
                 }
             }
         }
+        this.action++;
     }
 
     /**
