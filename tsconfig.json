@@ -5,7 +5,6 @@
         "declarationDir": "./dist",
         "outDir": "./dist",
         "preserveConstEnums": false,
-        "removeComments": true,
         "target": "es6",
         "module": "ES2020",
         "stripInternal": true,
