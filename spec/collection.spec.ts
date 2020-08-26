@@ -1,5 +1,3 @@
-// import { Map } from "../src/collection/map";
-// import { Set } from "../src/collection/set";
 import { Undoable, UndoRedo } from "../src";
 
 @Undoable()
