@@ -1,5 +1,6 @@
 import { Class, Visitor, Key } from "./type";
-import { MasterIndex, History } from "./core";
+import { MasterIndex } from "./core";
+import { History } from "./history";
 import { notDefined, getAllPropertyNames } from "./utils";
 
 type T = Class<any>;
