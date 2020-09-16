@@ -5,7 +5,7 @@ export { ShallowSave, UndoRedoError } from "./type";
 export { Undoable, UndoDoNotTrack, UndoDoNotRecurs, UndoAfterLoad } from "./decorator";
 
 
-export class InvalidParameterError extends UndoRedoError {}
+export class InvalidParameterError extends UndoRedoError { }
 
 /**
  * class used as entry point for the user.
@@ -87,13 +87,13 @@ export class UndoRedo {
         this.init();
     }
 
-    private applyAction(v: Visitor, deepSave?: any[], shallowSave: ShallowSave = {}): void {
+    private applyAction(visitor: Visitor, deepSave?: any[], shallowSave: ShallowSave = {}): void {
         for (const watchable of deepSave ? deepSave : this.watchables) {
             if (hasUndoInternalInformation(watchable)) {
                 if (!hasUndoInternal(watchable)) {
                     UndoInternal.Initialize(watchable);
                 }
-                (watchable as HasUndoInternal).__undoInternal__.visit(v, this.index, this.action, -2);
+                (watchable as HasUndoInternal).__undoInternal__.visit(visitor, this.index, this.action, -2);
             }
             else {
                 throw new InvalidParameterError(`${watchable} is not decorated with @Undoable()`);
@@ -105,7 +105,7 @@ export class UndoRedo {
                     if (!hasUndoInternal(watchable)) {
                         UndoInternal.Initialize(watchable);
                     }
-                    (watchable as HasUndoInternal).__undoInternal__.visit(v, this.index, this.action, parseInt(index));
+                    (watchable as HasUndoInternal).__undoInternal__.visit(visitor, this.index, this.action, parseInt(index));
                 }
                 else {
                     throw new InvalidParameterError(`${watchable} is not decorated with @Undoable()`);
@@ -159,7 +159,7 @@ export class UndoRedo {
     }
 
     public getCurrentIndex(): number {
-        return this.index.getCurrentIndex() ;
+        return this.index.getCurrentIndex();
     }
 
     public undoPossible(): boolean {
@@ -178,10 +178,10 @@ export class UndoRedo {
      * set History size, 0 = no limit (default)
      * if history reach this size, 1/4 of the old elements will be discarded
      */
-    public setMaxHistorySize(x: number): void {
-        if (x < 0) {
-            throw new InvalidParameterError(`the argument (${x}) of setMaxHistorySize must be greater or equal to 0`);
+    public setMaxHistorySize(size: number): void {
+        if (size < 0) {
+            throw new InvalidParameterError(`the argument (${size}) of setMaxHistorySize must be greater or equal to 0`);
         }
-        this.computeMinIndex(x === 0 ? Number.MAX_SAFE_INTEGER : x);
+        this.computeMinIndex(size === 0 ? Number.MAX_SAFE_INTEGER : size);
     }
 }
