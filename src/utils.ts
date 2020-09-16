@@ -1,5 +1,9 @@
 export const notDefined = Symbol("not defined");
 
+export function positiveMod(value: number, mod: number): number {
+    return ((value % mod) + mod) % mod;
+}
+
 /** overload equality so NaN === NaN */
 export function equality(a: any, b: any): boolean {
     return a === b || (Number.isNaN(a) === true && Number.isNaN(b) === true);
