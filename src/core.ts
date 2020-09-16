@@ -1,4 +1,4 @@
-import { SuperArray } from "./type";
+import { SuperArray, UndoRedoError } from "./type";
 import { equality, notDefined } from "./utils";
 
 /**
@@ -55,7 +55,7 @@ export class MasterIndex {
                 ? index
                 : Math.max(this.currentIndex - 1, 0);
         if (index > this.currentIndex || index < 0) {
-            throw Error(
+            throw new UndoRedoError(
                 "undo(i): i should be in [0, getCurrentIndex()] but i=" +
                     index +
                     " not in [0, " +
@@ -85,7 +85,7 @@ export class MasterIndex {
             index < this.currentIndex ||
             index > this.maxIndex
         ) {
-            throw Error(`redo(i): i (${index}) should be greater than getCurrentIndex() (${this.getCurrentIndex()}) `);
+            throw new UndoRedoError(`redo(i): i (${index}) should be greater than getCurrentIndex() (${this.getCurrentIndex()}) `);
         }
         this.currentIndex = Math.min(index, this.maxIndex);
     }

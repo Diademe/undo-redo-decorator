@@ -1,4 +1,4 @@
-import { Class, Visitor, Key } from "./type";
+import { Class, Visitor, Key, UndoRedoError } from "./type";
 import { MasterIndex } from "./core";
 import { History } from "./history";
 import { notDefined, getAllPropertyNames } from "./utils";
@@ -108,7 +108,7 @@ export class UndoInternal {
                     this.target.add(propKey);
                 }
                 else {
-                    throw Error("You cant set a value to false in a set");
+                    throw new UndoRedoError("You cant set a value to false in a set");
                 }
             }
             else if (this.target instanceof Map) {
@@ -176,7 +176,7 @@ export class UndoInternal {
         }
         this.action = action;
         if (this.master !== undefined && this.master !== master) {
-            throw Error("an object was affected to two UndoRedo");
+            throw new UndoRedoError("an object was affected to two UndoRedo");
         }
         this.master = master;
 

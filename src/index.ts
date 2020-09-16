@@ -1,8 +1,11 @@
 import { MasterIndex } from "./core";
-import { Visitor, ShallowSave } from "./type";
+import { Visitor, ShallowSave, UndoRedoError } from "./type";
 import { hasUndoInternal, UndoInternal, hasUndoInternalInformation, HasUndoInternal } from "./undoInternal";
-export { ShallowSave } from "./type";
+export { ShallowSave, UndoRedoError } from "./type";
 export { Undoable, UndoDoNotTrack, UndoDoNotRecurs, UndoAfterLoad } from "./decorator";
+
+
+export class InvalidParameterError extends UndoRedoError {}
 
 /**
  * class used as entry point for the user.
@@ -42,13 +45,13 @@ export class UndoRedo {
             (watchable as HasUndoInternal).__undoInternal__.visit(Visitor.save, this.index, this.action++, -2);
         }
         else {
-            throw Error(`${watchable} is not decorated with @Undoable()`);
+            throw new UndoRedoError(`${watchable} is not decorated with @Undoable()`);
         }
     }
 
     private computeMinIndex(maxHistorySize: number): void {
         if (maxHistorySize !== 0 && maxHistorySize < 8) {
-            throw Error(`maxHistorySize (${maxHistorySize}) must be 0 or greater than 7`);
+            throw new InvalidParameterError(`maxHistorySize (${maxHistorySize}) must be 0 or greater than 7`);
         }
         const indexSize = this.getCurrentIndex() - this.index.minIndex;
         if (indexSize > maxHistorySize) {
@@ -93,7 +96,7 @@ export class UndoRedo {
                 (watchable as HasUndoInternal).__undoInternal__.visit(v, this.index, this.action, -2);
             }
             else {
-                throw Error(`${watchable} is not decorated with @Undoable()`);
+                throw new InvalidParameterError(`${watchable} is not decorated with @Undoable()`);
             }
         }
         for (const index in shallowSave) {
@@ -105,7 +108,7 @@ export class UndoRedo {
                     (watchable as HasUndoInternal).__undoInternal__.visit(v, this.index, this.action, parseInt(index));
                 }
                 else {
-                    throw Error(`${watchable} is not decorated with @Undoable()`);
+                    throw new InvalidParameterError(`${watchable} is not decorated with @Undoable()`);
                 }
             }
         }
@@ -177,7 +180,7 @@ export class UndoRedo {
      */
     public setMaxHistorySize(x: number): void {
         if (x < 0) {
-            throw new Error(`the argument (${x}) of setMaxHistorySize must be greater or equal to 0`);
+            throw new InvalidParameterError(`the argument (${x}) of setMaxHistorySize must be greater or equal to 0`);
         }
         this.computeMinIndex(x === 0 ? Number.MAX_SAFE_INTEGER : x);
     }

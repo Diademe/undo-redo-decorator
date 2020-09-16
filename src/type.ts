@@ -1,3 +1,5 @@
+export class UndoRedoError extends Error {}
+
 export type Key = string | number;
 type Abstract<T> = Function & {prototype: T};
 type Constructor<T> = new (...args: any[]) => T;
