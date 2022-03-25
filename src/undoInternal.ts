@@ -198,7 +198,6 @@ export class UndoInternal {
         else {
             for (const [propKey, descriptor] of getAllPropertyNames<T, K>(this.target)) {
                 if (!(!descriptor.enumerable
-                    || descriptor.writable === false
                     || typeof descriptor.value === "function"
                     || propKey === "constructor"
                     || propKey === "prototype"

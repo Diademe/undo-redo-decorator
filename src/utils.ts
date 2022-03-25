@@ -10,23 +10,21 @@ export function equality(a: any, b: any): boolean {
 }
 
 /** return all properties (including non enumerable one) */
-export function getAllPropertyNames<T, K extends keyof T>(obj: T): [K, PropertyDescriptor][] {
-    const props: [K, PropertyDescriptor][] = [];
+export function getAllPropertyNames<T, K extends keyof T>(obj: T): IterableIterator<[K, PropertyDescriptor]> {
+    const properties: Map<K, PropertyDescriptor> = new Map();
     do {
-        Object.getOwnPropertyNames(obj).forEach(prop => {
+        for (const property of Object.getOwnPropertyNames(obj)) {
             const propertyDescriptor = Object.getOwnPropertyDescriptor(
                 obj,
-                prop
+                property
             );
             if (
                 propertyDescriptor.writable &&
-                props.findIndex(([prop2, _]) => {
-                    return prop2 === prop;
-                }) === -1
+                !properties.has(property as K)
             ) {
-                props.push([prop as K, propertyDescriptor]);
+                properties.set(property as K, propertyDescriptor);
             }
-        });
+        }
     } while ((obj = Object.getPrototypeOf(obj)));
-    return props;
+    return properties.entries();
 }
