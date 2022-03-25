@@ -13,6 +13,8 @@ spec
 .editorconfig
 .eslintignore
 .eslintrc
+.eslintrc.js
 .babelrc
 .gitignore
 Contribute.md
+.map
