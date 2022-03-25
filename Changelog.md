@@ -6,6 +6,16 @@
 
 ### Changed
 
+## [1.5.2]
+
+### Added
+
+- typed exceptions
+
+### Changed
+
+- performance optimisation
+
 ### Removed
 
 ## [1.5.1]
