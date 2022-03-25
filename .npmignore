@@ -6,8 +6,9 @@ package-lock.json
 
 # project files
 .vscode
-src
-spec
+src/
+spec/
+coverage/
 .git
 .travis.yml
 .editorconfig
@@ -17,4 +18,5 @@ spec
 .babelrc
 .gitignore
 Contribute.md
-.map
+*.map
+*.todo
