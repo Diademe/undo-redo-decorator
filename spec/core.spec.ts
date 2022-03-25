@@ -1,3 +1,4 @@
+/* eslint-disable no-empty-function */
 import { MasterIndex } from "../src/core";
 import { SuperArray } from "../src/type";
 import { UndoRedo, Undoable } from "../src";

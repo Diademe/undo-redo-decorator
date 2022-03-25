@@ -1,10 +1,10 @@
 module.exports = {
-    preset: 'ts-jest',
-    testEnvironment: 'node',
+    preset: "ts-jest",
+    testEnvironment: "node",
     rootDir: "../",
     globals: {
-        'ts-jest': {
-            tsConfig: 'spec/tsconfig.spec.json'
+        "ts-jest": {
+            tsconfig: "spec/tsconfig.spec.json"
         }
     },
     collectCoverageFrom: [

@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/indent */
+/* eslint-disable no-empty-function */
 import { Undoable, UndoDoNotTrack, UndoRedo } from "../src/index";
 import { is_constructor } from "./utils";
 import { UndoAfterLoad, UndoDoNotRecurs } from "../src/decorator";

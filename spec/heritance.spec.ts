@@ -1,3 +1,4 @@
+/* eslint-disable no-empty-function */
 import { Undoable, UndoRedo } from "../src/index";
 
 describe("hesitance", () => {

@@ -1,3 +1,4 @@
+/* eslint-disable no-empty-function */
 import { UndoRedo, Undoable } from "../src";
 
 @Undoable()
