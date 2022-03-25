@@ -24,12 +24,12 @@ class CustomSet<K> extends Set<K> {
     }
 }
 
-function isIterable(obj: any) {
+const isIterable = (obj: any) => {
     if (obj === null) {
         return false;
     }
     return typeof obj[Symbol.iterator] === "function";
-}
+};
 
 @Undoable(["length"])
 class CustomArray extends Array {
@@ -235,9 +235,7 @@ describe("immutable", () => {
                 expect(x.length).toEqual(3);
             });
             test("reduce", () => {
-                function add(v: number, acc: number) {
-                    return v + acc;
-                }
+                const add = (v: number, acc: number) => v + acc;
                 expect(x.reduce(add, 0)).toEqual(6);
             });
             test("sort", () => {
@@ -252,8 +250,8 @@ describe("immutable", () => {
                 x.shift();
                 expect(x).toEqual(CustomArray.from([2, 3])); // in place
             });
-            test("[Symbol​.iterator]()", () => {
-                expect(Array.from(x[Symbol​.iterator]())).toEqual([1, 2, 3]);
+            test("[Symbol.iterator]()", () => {
+                expect(Array.from(x[Symbol.iterator]())).toEqual([1, 2, 3]);
             });
         });
     });

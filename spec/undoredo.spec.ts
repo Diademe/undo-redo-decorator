@@ -2,7 +2,7 @@ import { UndoRedo, Undoable } from "../src";
 
 @Undoable()
 class Obj {
-    constructor(public a: number) {}
+    constructor(public a: number) { }
     b: number;
 }
 describe("[undo | redo] Possible", () => {

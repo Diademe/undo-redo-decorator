@@ -1,16 +1,16 @@
 export const notDefined = Symbol("not defined");
 
-export function positiveMod(value: number, mod: number): number {
+export const positiveMod = (value: number, mod: number): number => {
     return ((value % mod) + mod) % mod;
-}
+};
 
 /** overload equality so NaN === NaN */
-export function equality(a: any, b: any): boolean {
+export const equality = (a: any, b: any): boolean => {
     return a === b || (Number.isNaN(a) === true && Number.isNaN(b) === true);
-}
+};
 
 /** return all properties (including non enumerable one) */
-export function getAllPropertyNames<T, K extends keyof T>(obj: T): IterableIterator<[K, PropertyDescriptor]> {
+export const getAllPropertyNames = <T, K extends keyof T>(obj: T): IterableIterator<[K, PropertyDescriptor]> => {
     const properties: Map<K, PropertyDescriptor> = new Map();
     do {
         for (const property of Object.getOwnPropertyNames(obj)) {
@@ -27,4 +27,4 @@ export function getAllPropertyNames<T, K extends keyof T>(obj: T): IterableItera
         }
     } while ((obj = Object.getPrototypeOf(obj)));
     return properties.entries();
-}
+};

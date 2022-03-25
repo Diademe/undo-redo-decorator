@@ -142,9 +142,9 @@ export class MasterIndex {
     }
 
     public collapse<T, K extends keyof T>(
-            slaveHistory: SuperArray<[number, T[K] | Symbol]>,
-            obj: T[K] | Symbol
-        ): void {
+        slaveHistory: SuperArray<[number, T[K] | Symbol]>,
+        obj: T[K] | Symbol
+    ): void {
         // find where we have to collapse in slaveHistory
         const indexSlaveHistory = this.findIndex(slaveHistory);
 

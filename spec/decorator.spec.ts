@@ -4,17 +4,17 @@ import { UndoAfterLoad, UndoDoNotRecurs } from "../src/decorator";
 
 describe("decorator", () => {
     const db = new Set<any>();
-    function save<T extends Object, K extends keyof T>(
+    const save = <T extends Object, K extends keyof T>(
         target: T,
         keyName: K,
         _: any
-    ) {
+    ) => {
         const res = is_constructor(target);
         db.add(res ? target : target.constructor);
-    }
-    function saveClass<T extends Object>(target: T) {
+    };
+    const saveClass = <T extends Object>(target: T) => {
         db.add(target);
-    }
+    };
 
     @saveClass
     @Undoable()
@@ -26,12 +26,6 @@ describe("decorator", () => {
             return new Foo("clone of " + this.name);
         }
     }
-
-    let foo: Foo;
-
-    beforeEach(() => {
-        foo = new Foo("foo");
-    });
 
     test("nonEnumerable", () => {
         @Undoable(["A"])

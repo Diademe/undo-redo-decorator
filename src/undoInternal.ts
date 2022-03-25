@@ -279,24 +279,23 @@ export class UndoInternalInformation {
  * `__undoInternalInformation__` being inherited
  * @param ctor the target class to which the `__undoInternalInformation__` will be added
  */
-export function initUndoInternalInformation(ctor: Function) {
+export const initUndoInternalInformation = (ctor: Function)  => {
     if (!Object.getOwnPropertyDescriptor(ctor.prototype, "__undoInternalInformation__")) {
         Object.defineProperty(ctor.prototype, "__undoInternalInformation__", {
             enumerable: false,
             value: new UndoInternalInformation(ctor)
         });
     }
-}
+};
 
-export function hasUndoInternalInformation(instance: any): boolean {
+export const hasUndoInternalInformation = (instance: any): boolean  => {
     return !!(instance && instance.constructor.prototype.__undoInternalInformation__);
-}
-
+};
 
 export interface HasUndoInternal {
     __undoInternal__: UndoInternal;
 }
 
-export function hasUndoInternal(instance: HasUndoInternal | any): instance is HasUndoInternal {
+export const hasUndoInternal = (instance: HasUndoInternal | any): instance is HasUndoInternal  => {
     return instance && instance.__undoInternal__ instanceof UndoInternal;
-}
+};
