@@ -28,11 +28,4 @@ export class History<T extends Class<any>, K extends keyof T> {
     public collapse(valueToKeep: T[K] | Symbol): void {
         this.masterIndex.collapse(this.history, valueToKeep);
     }
-
-    clone(): this {
-        const res = Object.create(Object.getPrototypeOf(this));
-        res.masterIndex = this.masterIndex;
-        res.history = SuperArray.from(this.history);
-        return res;
-    }
 }
