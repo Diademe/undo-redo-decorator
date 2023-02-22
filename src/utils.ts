@@ -28,3 +28,23 @@ export const getAllPropertyNames = <T, K extends keyof T>(obj: T): IterableItera
     } while ((obj = Object.getPrototypeOf(obj)));
     return properties.entries();
 };
+
+/**
+ * @param array on which to perform find
+ * @param predicate
+ * @param from starting index
+ * @returns last index where predicate is true, 0
+ */
+export const reverseFindIndex = <T>(
+    array: T[],
+    predicate: (elt: T, index: number, history: T[]) => boolean,
+    from?: number
+): number => {
+    from = from ?? array.length - 1;
+    for (let index = from; index >= 0; index--) {
+        if (predicate(array[index], index, array)) {
+            return index;
+        }
+    }
+    return 0;
+};

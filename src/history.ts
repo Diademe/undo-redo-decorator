@@ -1,4 +1,4 @@
-import { SuperArray, Class } from "./type";
+import { Class } from "./type";
 import { notDefined } from "./utils";
 import { MasterIndex } from "./core";
 
@@ -6,9 +6,9 @@ import { MasterIndex } from "./core";
  * keep track of the history of value a property had
  */
 export class History<T extends Class<any>, K extends keyof T> {
-    private history: SuperArray<[number, T[K] | Symbol]>;
+    private history: [number, T[K] | Symbol][];
     constructor(private masterIndex: MasterIndex, obj: T[K]) {
-        this.history = new SuperArray<[number, T[K]]>([0, notDefined]);
+        this.history = [[0, notDefined]];
         this.masterIndex.set(this.history, obj);
     }
 

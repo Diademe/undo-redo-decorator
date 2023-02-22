@@ -1,60 +1,26 @@
 /* eslint-disable no-empty-function */
 import { MasterIndex } from "../src/core";
-import { SuperArray } from "../src/type";
 import { UndoRedo, Undoable } from "../src";
-import { notDefined } from "../src/utils";
+import { notDefined, reverseFindIndex } from "../src/utils";
 
 describe("core", () => {
-    describe("SuperArray", () => {
-        let val: number[];
-        let a: SuperArray<number[]>;
-        beforeEach(() => {
-            val = [1];
-            a = new SuperArray();
-            a.push(val);
-        });
-        test("from", () => {
-            const b = SuperArray.from(val);
-            expect(b).toBeInstanceOf(SuperArray);
-            expect(b).not.toEqual(val);
-        });
-
-        test("clone", () => {
-            const b = a.clone();
-            expect(b).toBeInstanceOf(SuperArray);
-            expect(b).not.toBe(a);
-        });
-    });
-
-    describe("History", () => {
-        test("last", () => {
-            const a = new SuperArray<number>();
-            a.push(1);
-            expect(a.last).toBe(1);
-            a.push(2);
-            expect(a.last).toBe(2);
-            a.length = 0;
-            expect(a.last).toBe(undefined);
-        });
-
-        test("reverseFindIndex", () => {
-            const history = new SuperArray<number>();
-            history.push(0, 1, 2, 3, 4, 3, 2, 1);
-            expect(history.reverseFindIndex((e: number) => e === 6)).toBe(0);
-            expect(history.reverseFindIndex((e: number) => e === 4)).toBe(4);
-            expect(history.reverseFindIndex((e: number) => e === 3)).toBe(5);
-        });
+    test("reverseFindIndex", () => {
+        const history: number[] = [];
+        history.push(0, 1, 2, 3, 4, 3, 2, 1);
+        expect(reverseFindIndex(history, (e: number) => e === 6)).toBe(0);
+        expect(reverseFindIndex(history, (e: number) => e === 4)).toBe(4);
+        expect(reverseFindIndex(history, (e: number) => e === 3)).toBe(5);
     });
 
     describe("MasterIndex", () => {
         describe("[undo | redo] Possible", () => {
             let m: MasterIndex;
-            let h: SuperArray<[number, number]>;
+            let h: [number, number | symbol][];
             // initial state: nothing in history,
 
             beforeEach(() => {
                 m = new MasterIndex();
-                h = new SuperArray<[number, number]>([0, notDefined]);
+                h = [[0, notDefined]];
             });
 
             test("initial state : nothing possible", () => {
@@ -139,7 +105,7 @@ describe("core", () => {
 
         test("undo | redo", () => {
             const m = new MasterIndex();
-            const h = new SuperArray<[number, number]>([0, notDefined]);
+            const h: [number, number | symbol][] = [[0, notDefined]];
             expect(m.getCurrentIndex()).toBe(0);
             m.set<Number, any>(h, 0);
             expect(h).toEqual([[0, 0]]);

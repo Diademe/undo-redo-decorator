@@ -1,5 +1,5 @@
-import { SuperArray, UndoRedoError } from "./type";
-import { equality, notDefined } from "./utils";
+import { UndoRedoError } from "./type";
+import { equality, notDefined, reverseFindIndex } from "./utils";
 
 /**
  * keep track of the history.
@@ -91,10 +91,10 @@ export class MasterIndex {
      * @returns index where a value must be written for currentIndex
      * @param slaveHistory must not be empty
      */
-    private findIndex<T>(slaveHistory: SuperArray<[number, T]>) {
-        return slaveHistory.reverseFindIndex(
-            ([slaveIndex]: [number, T]) =>
-                slaveIndex <= this.currentIndex
+    private findIndex<T>(slaveHistory: [number, T][]) {
+        return reverseFindIndex(
+            slaveHistory,
+            ([slaveIndex]: [number, T]) => slaveIndex <= this.currentIndex
         );
     }
 
@@ -103,7 +103,7 @@ export class MasterIndex {
      * must not be empty (initialize it with [0, notDefined])
      * @param obj the object to save in slaveHistory
      */
-    public set<T, K extends keyof T>(slaveHistory: SuperArray<[number, T[K] | Symbol]>, obj: T[K] | Symbol): void {
+    public set<T, K extends keyof T>(slaveHistory: [number, T[K] | Symbol][], obj: T[K] | Symbol): void {
         const indexSlaveHistory = this.findIndex(slaveHistory);
 
         // we don't write twice an item at the end of the history
@@ -124,7 +124,7 @@ export class MasterIndex {
         if (slaveHistory[indexSlaveHistory][0] < this.currentIndex) {
             slaveHistory.length++;
         }
-        slaveHistory.last = [this.currentIndex, obj];
+        slaveHistory[slaveHistory.length - 1] = [this.currentIndex, obj];
 
         // remove old entry
         if (slaveHistory.length > 1 && slaveHistory[1][0] < this.minIndex) {
@@ -139,7 +139,7 @@ export class MasterIndex {
     }
 
     public collapse<T, K extends keyof T>(
-        slaveHistory: SuperArray<[number, T[K] | Symbol]>,
+        slaveHistory: [number, T[K] | Symbol][],
         obj: T[K] | Symbol
     ): void {
         // find where we have to collapse in slaveHistory
@@ -158,14 +158,14 @@ export class MasterIndex {
             slaveHistory.length++;
         }
         // else we override the last value because slaveHistory.last corresponds to the index we collapse to.
-        slaveHistory.last = [this.currentIndex, obj];
+        slaveHistory[slaveHistory.length - 1] = [this.currentIndex, obj];
     }
 
     /**
      * return the index of the current object
      * @param slaveHistory the history of the object from which we want to get the current state
      */
-    public get<T>(slaveHistory: SuperArray<[number, T]>): number {
+    public get<T>(slaveHistory: [number, T][]): number {
         return this.findIndex(slaveHistory);
     }
 }
