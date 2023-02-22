@@ -50,7 +50,7 @@ export class SuperArray<T> extends Array<T> {
         predicate: (elt: T, index: number, history: SuperArray<T>) => boolean,
         from?: number
     ): number {
-        from = from === undefined ? this.length - 1 : from;
+        from = from ?? this.length - 1;
         for (let index = from; index >= 0; index--) {
             if (predicate(this[index], index, this)) {
                 return index;
