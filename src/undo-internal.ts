@@ -134,14 +134,19 @@ export class UndoInternal {
     }
 
     dispatchAndRecurse(propKey: K, v: Visitor, recurse: boolean, shallowDepth: number): void {
-        if (v === Visitor.save) {
-            this.save(propKey);
-        }
-        else if (v === Visitor.load) {
-            this.load(propKey);
-        }
-        else if (v === Visitor.collapse) {
-            this.collapse(propKey);
+        switch (v) {
+            case Visitor.save: {
+                this.save(propKey);
+                break;
+            }
+            case Visitor.load: {
+                this.load(propKey);
+                break;
+            }
+            case Visitor.collapse: {
+                this.collapse(propKey);
+                break;
+            }
         }
         if (recurse) {
             // dispatch on key (example : object key of a map)

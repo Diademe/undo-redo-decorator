@@ -21,6 +21,7 @@ module.exports = {
     "extends": [
         "eslint:recommended",
         "plugin:@typescript-eslint/recommended",
+        "plugin:unicorn/recommended",
     ],
     "rules": {
         "@typescript-eslint/adjacent-overload-signatures": "error",
@@ -202,6 +203,9 @@ module.exports = {
             }
         ],
         "unicorn/prefer-ternary": "off",
+        "unicorn/prevent-abbreviations": "off",
+        "unicorn/prefer-spread": "off",
+        "unicorn/no-array-push-push": "off",
         "use-isnan": "error",
         "valid-typeof": "off",
         "brace-style": [

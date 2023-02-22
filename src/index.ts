@@ -1,11 +1,11 @@
 import { MasterIndex } from "./core";
 import { Visitor, ShallowSave, UndoRedoError } from "./type";
-import { hasUndoInternal, UndoInternal, hasUndoInternalInformation, HasUndoInternal } from "./undoInternal";
+import { hasUndoInternal, UndoInternal, hasUndoInternalInformation, HasUndoInternal } from "./undo-internal";
 export { ShallowSave, UndoRedoError } from "./type";
 export { Undoable, UndoDoNotTrack, UndoDoNotRecurs, UndoAfterLoad } from "./decorator";
 
 
-export class InvalidParameterError extends UndoRedoError { }
+export class InvalidParameterError extends UndoRedoError {}
 
 /**
  * class used as entry point for the user.
@@ -88,7 +88,7 @@ export class UndoRedo {
     }
 
     private applyAction(visitor: Visitor, deepSave?: any[], shallowSave: ShallowSave = {}): void {
-        for (const watchable of deepSave ? deepSave : this.watchables) {
+        for (const watchable of deepSave ?? this.watchables) {
             if (hasUndoInternalInformation(watchable)) {
                 if (!hasUndoInternal(watchable)) {
                     UndoInternal.Initialize(watchable);
@@ -105,7 +105,7 @@ export class UndoRedo {
                     if (!hasUndoInternal(watchable)) {
                         UndoInternal.Initialize(watchable);
                     }
-                    (watchable as HasUndoInternal).__undoInternal__.visit(visitor, this.index, this.action, parseInt(index));
+                    (watchable as HasUndoInternal).__undoInternal__.visit(visitor, this.index, this.action, Number.parseInt(index));
                 }
                 else {
                     throw new InvalidParameterError(`${watchable} is not decorated with @Undoable()`);

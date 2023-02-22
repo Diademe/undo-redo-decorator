@@ -159,9 +159,9 @@ describe("immutable", () => {
                 expect(x.findIndex(v => v < 0)).toEqual(-1);
             });
             test("forEach", () => {
-                x.forEach((e, i) => {
+                for (const [i, e] of x.entries()) {
                     expect(e - 1).toBe(i);
-                });
+                }
             });
             test("indexOf", () => {
                 expect(x.indexOf(1)).toEqual(0);
@@ -235,8 +235,7 @@ describe("immutable", () => {
                 expect(x.length).toEqual(3);
             });
             test("reduce", () => {
-                const add = (v: number, acc: number) => v + acc;
-                expect(x.reduce(add, 0)).toEqual(6);
+                expect(x.reduce((v: number, acc: number) => v + acc, 0)).toEqual(6);
             });
             test("sort", () => {
                 expect(x.reverse()).toEqual(CustomArray.from([3, 2, 1])); // in place

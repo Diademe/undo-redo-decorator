@@ -35,7 +35,7 @@ describe("hesitance", () => {
     test("Register", () => {
         @Undoable()
         class MotherRegister {
-            constructor(private ud: UndoRedo) { }
+            constructor(private ud: UndoRedo) {}
             onInit() {
                 ud.add(this);
             }
@@ -74,7 +74,7 @@ describe("hesitance with only child decorated by Undoable", () => {
 
     test("Register", () => {
         class MotherRegister {
-            constructor(private ud: UndoRedo) { }
+            constructor(private ud: UndoRedo) {}
             onInit() {
                 ud.add(this);
             }

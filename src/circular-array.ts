@@ -1,8 +1,8 @@
 import { UndoRedoError } from "./type";
 import { positiveMod } from "./utils";
 
-export class UndoRedoHistorySizeError extends UndoRedoError { }
-export class UndoRedoHistoryError extends UndoRedoError { }
+export class UndoRedoHistorySizeError extends UndoRedoError {}
+export class UndoRedoHistoryError extends UndoRedoError {}
 
 /**
  * an array that discard it's old index when size limit is exceeded

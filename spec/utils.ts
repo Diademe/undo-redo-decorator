@@ -4,7 +4,7 @@ export const is_constructor = (f: any) => {
     try {
         Reflect.construct(String, [], f);
     }
-    catch (e) {
+    catch {
         return false;
     }
     return true;

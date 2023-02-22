@@ -75,8 +75,7 @@ describe("decorator", () => {
                 }
             }
             @Undoable()
-            class Test extends MotherTest {
-            }
+            class Test extends MotherTest {}
             const test = new Test();
             const ud = new UndoRedo(test);
             expect(test.prop).toBe(1);

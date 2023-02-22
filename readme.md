@@ -16,7 +16,7 @@ To use it you need to do two steps:
 - However if you want to monitor A and C only, as A doesn't have a member C, you need to add A and C to UndoRedo
 
     ```typescript
-    @Undoable() class C { }
+    @Undoable() class C {}
     @Undoable() class B { member: C; }
     @Undoable() class A { member: B; }
     // case 1

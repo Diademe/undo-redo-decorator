@@ -50,10 +50,7 @@ export class MasterIndex {
      */
     public undo(index?: number): void {
         // undefined because index can be 0
-        index =
-            index !== undefined
-                ? index
-                : Math.max(this.currentIndex - 1, 0);
+        index = index ?? Math.max(this.currentIndex - 1, 0);
         if (index > this.currentIndex || index < 0) {
             throw new UndoRedoError(
                 "undo(i): i should be in [0, getCurrentIndex()] but i=" +
@@ -80,7 +77,7 @@ export class MasterIndex {
      * @param index to which state do you want to go (default : last saved state)
      */
     public redo(index?: number): void {
-        index = index !== undefined ? index : this.currentIndex + 1;
+        index = index ?? this.currentIndex + 1;
         if (
             index < this.currentIndex ||
             index > this.maxIndex

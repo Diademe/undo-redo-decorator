@@ -2,7 +2,7 @@ import {
     CircularArray,
     UndoRedoHistoryError,
     UndoRedoHistorySizeError
-} from "../src/circularArray";
+} from "../src/circular-array";
 
 describe("Circular Array", () => {
     describe("get / set", () => {

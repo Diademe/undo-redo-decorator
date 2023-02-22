@@ -19,7 +19,7 @@ class Fifo<T> extends Array<T> {
 
 @Undoable()
 class Pair<T> {
-    constructor(private a: T, private b: T) { }
+    constructor(private a: T, private b: T) {}
     get first() {
         return this.a;
     }
@@ -42,7 +42,7 @@ class Pair<T> {
 
 @Undoable()
 class LinkedList<T> {
-    constructor(public val: T, public next: LinkedList<T>) { }
+    constructor(public val: T, public next: LinkedList<T>) {}
     static end<T>(list: LinkedList<T>) {
         let elt = list;
         while (elt.next !== undefined && elt.next !== list) {

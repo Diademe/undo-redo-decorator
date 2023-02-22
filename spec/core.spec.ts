@@ -165,7 +165,7 @@ describe("core", () => {
     describe("shallow recursive", () => {
         @Undoable()
         class List {
-            constructor (public val = 0, public next?: List) { }
+            constructor (public val = 0, public next?: List) {}
         }
 
         let l: List;
@@ -217,7 +217,7 @@ describe("core", () => {
         }
 
         @Undoable()
-        class Child extends GetterSetter { }
+        class Child extends GetterSetter {}
 
         let child: Child;
         let getSet: GetterSetter;

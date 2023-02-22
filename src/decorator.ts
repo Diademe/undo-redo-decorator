@@ -1,4 +1,4 @@
-import { UndoInternalInformation, initUndoInternalInformation } from "./undoInternal";
+import { UndoInternalInformation, initUndoInternalInformation } from "./undo-internal";
 import { Key, Class } from "./type";
 
 
