@@ -12,7 +12,7 @@ export class History<T extends Class<any>, K extends keyof T> {
         this.masterIndex.set(this.history, obj);
     }
 
-    get(): T[K] | Symbol {
+    public get(): T[K] | Symbol {
         const index = this.masterIndex.get(this.history);
         if (index === -1) {
             // the object is not define for this state of undo
@@ -21,11 +21,11 @@ export class History<T extends Class<any>, K extends keyof T> {
         return this.history[index][1];
     }
 
-    set(obj: T[K] | Symbol): void {
+    public set(obj: T[K] | Symbol): void {
         this.masterIndex.set(this.history, obj);
     }
 
-    collapse(valueToKeep: T[K] | Symbol): void {
+    public collapse(valueToKeep: T[K] | Symbol): void {
         this.masterIndex.collapse(this.history, valueToKeep);
     }
 

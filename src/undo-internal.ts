@@ -24,7 +24,7 @@ export class UndoInternal {
     }
 
     /** create UndoInternal and bind it to target */
-    static Initialize(target: T) {
+    public static Initialize(target: T) {
         const undoInternal = new UndoInternal(target);
         Object.defineProperty(target, "__undoInternal__", {
             writable: false,
@@ -46,7 +46,7 @@ export class UndoInternal {
         }
     }
 
-    collapse(propKey: K): void {
+    protected collapse(propKey: K): void {
         const value = this.getValueFromTarget(propKey);
         if (this.history.has(propKey)) {
             this.history.get(propKey).collapse(value);
@@ -63,7 +63,7 @@ export class UndoInternal {
     }
 
     /** save the current value into the history of the propKey */
-    save(propKey: K): void {
+    protected save(propKey: K): void {
         const value = this.getValueFromTarget(propKey);
         if (this.history.has(propKey)) {
             this.history.get(propKey).set(value);
@@ -80,7 +80,7 @@ export class UndoInternal {
     }
 
     /** overrides the current value with the value stored in the propKey history */
-    load(propKey: K) {
+    protected load(propKey: K) {
         const deleteProperty = () => {
             if (this.target instanceof Set || this.target instanceof Map) {
                 this.target.delete(propKey);
@@ -133,7 +133,7 @@ export class UndoInternal {
         }
     }
 
-    dispatchAndRecurse(propKey: K, v: Visitor, recurse: boolean, shallowDepth: number): void {
+    protected dispatchAndRecurse(propKey: K, v: Visitor, recurse: boolean, shallowDepth: number): void {
         switch (v) {
             case Visitor.save: {
                 this.save(propKey);
@@ -175,7 +175,7 @@ export class UndoInternal {
         }
     }
 
-    visit(v: Visitor, master: MasterIndex, action: number, shallowDepth: number): void {
+    public visit(v: Visitor, master: MasterIndex, action: number, shallowDepth: number): void {
         if (this.action === action || shallowDepth === -1) {
             return;
         }
