@@ -1,4 +1,6 @@
 import { Undoable, UndoRedo } from "../src";
+import { HasUndoInternal } from "../src/undo-internal";
+import { notDefined } from "../src/utils";
 
 @Undoable()
 class CustomMap<K, V> extends Map<K, V> {
@@ -115,6 +117,29 @@ describe("immutable", () => {
                 ud.save();
                 ud.redo();
                 expect(Array.from(x.entries())).toEqual([[1, "1"], [2, "2"]]);
+            });
+            // if keys ares removed by an undo, and redo is invalidated, we should purge keys
+            // to avoid memory leak
+            test("delete keys", () => {
+                x = new CustomMap([]);
+                ud = new UndoRedo(x);
+                expect(Array.from(x.entries())).toEqual([]);
+                x.set(1, "1");
+                ud.save();
+                expect(Array.from(x.entries())).toEqual([[1, "1"]]);
+                x.set(2, "2");
+                ud.save();
+                expect(Array.from(x.entries())).toEqual([[1, "1"], [2, "2"]]);
+                ud.undo();
+                expect(Array.from(x.entries())).toEqual([[1, "1"]]);
+                ud.undo();
+                expect(Array.from(x.entries())).toEqual([]);
+                x.set(3, "3");
+                ud.save();
+                // eslint-disable-next-line dot-notation, @typescript-eslint/dot-notation, @typescript-eslint/no-non-null-assertion
+                const history2 = (x as unknown as HasUndoInternal).__undoInternal__["history"].get(2)!["history"];
+                expect(history2.length).toBe(1);
+                expect(history2[0][1]).toBe(notDefined);
             });
         });
 
@@ -251,6 +276,32 @@ describe("immutable", () => {
             });
             test("[Symbol.iterator]()", () => {
                 expect(Array.from(x[Symbol.iterator]())).toEqual([1, 2, 3]);
+            });
+            // if keys ares removed by an undo, and redo is invalidated, we should purge keys
+            // to avoid memory leak
+            test("delete keys", () => {
+                x = new CustomArray([]);
+                ud = new UndoRedo(x);
+                ud.save();
+                x.push(1);
+                ud.save();
+                expect(x.length).toEqual(1);
+                expect(ud.getCurrentIndex()).toEqual(1);
+
+                x.push(2);
+                ud.save();
+                expect(x.length).toEqual(2);
+                expect(ud.getCurrentIndex()).toEqual(2);
+
+                ud.undo();
+                expect(x.length).toEqual(1);
+
+                x.push(3);
+                ud.save();
+                expect(x.length).toEqual(2);
+                expect(ud.getCurrentIndex()).toEqual(2);
+                // eslint-disable-next-line dot-notation, @typescript-eslint/dot-notation
+                expect((x as unknown as HasUndoInternal).__undoInternal__["history"].has(2)).toBe(false);
             });
         });
     });

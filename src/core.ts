@@ -99,6 +99,25 @@ export class MasterIndex {
     }
 
     /**
+     * @returns first index where value is not noDefined
+     * @param slaveHistory must not be empty
+     */
+    private findCreationIndex<T>(slaveHistory: [number, T][]) {
+        const index = slaveHistory.findIndex(([, obj]: [number, T]) => obj !== notDefined);
+        return index === -1 ? -1 : slaveHistory[index][0];
+    }
+
+    /** delete history if it is created in the future */
+    public trimFutureHistory(slaveHistory: [number, unknown | Symbol][], ): void {
+        const indexCreation = this.findCreationIndex(slaveHistory);
+        if (this.isDirty && indexCreation >= this.currentIndex) {
+            slaveHistory.length = 0;
+            slaveHistory.push([indexCreation, notDefined]);
+            return;
+        }
+    }
+
+    /**
      * @param slaveHistory the history where obj should be saved
      * must not be empty (initialize it with [0, notDefined])
      * @param obj the object to save in slaveHistory

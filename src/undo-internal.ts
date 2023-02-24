@@ -5,25 +5,24 @@ import { notDefined, getAllPropertyNames } from "./utils";
 
 type T = Class<any>;
 type K = keyof T;
-type TFutureKey = Map<UndoInternal, Set<unknown>>;
 
 export class UndoInternal {
     /** associate a property key to its history */
     protected history: Map<unknown, History>;
     public master: MasterIndex;
     /** the class being monitored */
-    public target: T;
+    public target: T & HasUndoInternal;
     /** used to prevent recursion to loop */
     protected action: number;
 
-    constructor(target: T) {
+    constructor(target: T & HasUndoInternal) {
         this.target = target;
         this.history = new Map();
         this.action = -1;
     }
 
     /** create UndoInternal and bind it to target */
-    public static Initialize(target: T) {
+    public static Initialize(target: T & HasUndoInternal): void {
         const undoInternal = new UndoInternal(target);
         Object.defineProperty(target, "__undoInternal__", {
             writable: false,
@@ -59,7 +58,9 @@ export class UndoInternal {
     protected save(propKey: unknown): void {
         const value = this.getValueFromTarget(propKey);
         if (this.history.has(propKey)) {
-            this.history.get(propKey).set(value);
+            const propHistory = this.history.get(propKey);
+            propHistory.set(value);
+            propHistory.trimFutureHistory();
         }
         else {
             this.history.set(propKey, new History(this.master, value as unknown));
@@ -120,7 +121,7 @@ export class UndoInternal {
         }
     }
 
-    protected dispatchAndRecurse(propKey: unknown, v: Visitor, recurse: boolean, shallowDepth: number, collections: TFutureKey): void {
+    protected dispatchAndRecurse(propKey: unknown, v: Visitor, recurse: boolean, shallowDepth: number): void {
         switch (v) {
             case Visitor.save: {
                 this.save(propKey);
@@ -144,25 +145,40 @@ export class UndoInternal {
                 if (!hasUndoInternal(key)) {
                     UndoInternal.Initialize(key as any);
                 }
-                (key as unknown as HasUndoInternal).
-                    __undoInternal__.visit(v, this.master, this.action, shallowDepth - 1);
+                (key as HasUndoInternal).
+                    __undoInternal__.visitInternal(v, this.master, this.action, shallowDepth - 1);
             }
-            // no value associated to a key for Set
+            // dispatch on value
             if (this.target instanceof Set) {
+                // no value associated to a key for Set
                 return;
             }
-            const val = this.target instanceof Map ? this.target.get(key) : this.target[propKey];
+            const val = this.getValueFromTarget(propKey);
             // if value type is undoable
             if (hasUndoInternalInformation(val)) {
                 if (!hasUndoInternal(val)) {
-                    UndoInternal.Initialize(val);
+                    UndoInternal.Initialize(val as T & HasUndoInternal);
                 }
-                (val as HasUndoInternal).__undoInternal__.visit(v, this.master, this.action, shallowDepth - 1);
+                (val as HasUndoInternal).__undoInternal__.visitInternal(v, this.master, this.action, shallowDepth - 1);
             }
         }
     }
 
-    public visit(v: Visitor, master: MasterIndex, action: number, shallowDepth: number): void {
+    public visit(
+        v: Visitor,
+        master: MasterIndex,
+        action: number,
+        shallowDepth: number): void {
+        this.visitInternal(v, master, action, shallowDepth);
+    }
+
+
+    protected visitInternal(
+        v: Visitor,
+        master: MasterIndex,
+        action: number,
+        shallowDepth: number,
+    ): void {
         if (this.action === action || shallowDepth === -1) {
             return;
         }
@@ -181,9 +197,10 @@ export class UndoInternal {
             nonEnumerables
         } = this.target.constructor.prototype.__undoInternalInformation__ as UndoInternalInformation;
 
+        // keys of collections must be dispatched as hey can be object
         if (this.target instanceof Set || this.target instanceof Map) {
             for (const key of this.target.keys()) {
-                this.dispatchAndRecurse(key, v, true, shallowDepth);
+                this.dispatchAndRecurse(key, v, true /* can't decorate a collection key */, shallowDepth);
                 memberDispatched.add(key);
             }
         }
@@ -208,9 +225,10 @@ export class UndoInternal {
 
         }
 
+        const isCollection = this.target instanceof Set || this.target instanceof Map;
         for (const [propKey] of this.history) {
             if (!memberDispatched.has(propKey)) {
-                this.dispatchAndRecurse(propKey, v, !doNotRecurs.has(propKey) && (this.target instanceof Set || this.target instanceof Map), shallowDepth);
+                this.dispatchAndRecurse(propKey, v, !doNotRecurs.has(propKey) && isCollection, shallowDepth );
             }
         }
 
