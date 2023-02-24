@@ -29,9 +29,9 @@ describe("core", () => {
             });
 
             test("invalid undo parameter", () => {
-                m.set<Number, any>(h, 1);
+                m.set(h, 1);
                 m.saveInit();
-                m.set<Number, any>(h, 2);
+                m.set(h, 2);
                 expect(m.getCurrentIndex()).toBe(1);
                 expect(() => m.undo(-1)).toThrow();
                 expect(() => m.undo(1)).not.toThrow();
@@ -40,9 +40,9 @@ describe("core", () => {
             });
 
             test("invalid redo parameter", () => {
-                m.set<Number, any>(h, 1); // index = 0
+                m.set(h, 1); // index = 0
                 m.saveInit();
-                m.set<Number, any>(h, 2); // index = 1
+                m.set(h, 2); // index = 1
                 expect(() => m.redo(0)).toThrow();
                 expect(() => m.redo(1)).not.toThrow();
                 expect(() => m.redo(2)).toThrow();
@@ -53,11 +53,11 @@ describe("core", () => {
 
             test("redoPossible", () => {
                 expect(m.redoPossible()).toBe(false);
-                m.set<Number, any>(h, 1);
+                m.set(h, 1);
                 expect(m.redoPossible()).toBe(false);
                 expect(m.getCurrentIndex()).toBe(0);
                 m.saveInit();
-                m.set<Number, any>(h, 2);
+                m.set(h, 2);
                 expect(m.redoPossible()).toBe(false);
                 m.undo();
                 expect(m.redoPossible()).toBe(true);
@@ -67,10 +67,10 @@ describe("core", () => {
 
             test("maxRedoPossible", () => {
                 expect(m.maxRedoPossible()).toBe(0);
-                m.set<Number, any>(h, 1);
+                m.set(h, 1);
                 expect(m.maxRedoPossible()).toBe(0);
                 m.saveInit();
-                m.set<Number, any>(h, 2);
+                m.set(h, 2);
                 expect(m.maxRedoPossible()).toBe(0);
 
                 m.undo();
@@ -83,21 +83,21 @@ describe("core", () => {
             test("setMaxHistorySize", () => {
                 m.minIndex = 4;
                 m.saveInit();
-                m.set<Number, any>(h, 1);
+                m.set(h, 1);
                 m.saveInit();
-                m.set<Number, any>(h, 2);
+                m.set(h, 2);
                 m.saveInit();
-                m.set<Number, any>(h, 3);
+                m.set(h, 3);
                 m.saveInit();
-                m.set<Number, any>(h, 4);
+                m.set(h, 4);
                 m.saveInit();
-                m.set<Number, any>(h, 5);
+                m.set(h, 5);
                 m.saveInit();
-                m.set<Number, any>(h, 6);
+                m.set(h, 6);
                 expect(h).toEqual([[0, notDefined], [4, 4], [5, 5], [6, 6]]);
                 m.minIndex = 5;
                 m.saveInit();
-                m.set<Number, any>(h, 7);
+                m.set(h, 7);
                 expect(h).toEqual([[0, notDefined], [5, 5], [6, 6], [7, 7]]);
             });
         });
@@ -107,23 +107,23 @@ describe("core", () => {
             const m = new MasterIndex();
             const h: [number, number | symbol][] = [[0, notDefined]];
             expect(m.getCurrentIndex()).toBe(0);
-            m.set<Number, any>(h, 0);
+            m.set(h, 0);
             expect(h).toEqual([[0, 0]]);
 
             m.saveInit();
-            m.set<Number, any>(h, 1);
+            m.set(h, 1);
             expect(m.getCurrentIndex()).toBe(1);
 
             expect(h).toEqual([[0, 0], [1, 1]]);
 
             m.undo(0);
             m.saveInit();
-            m.set<Number, any>(h, 3);
+            m.set(h, 3);
 
             expect(h).toEqual([[0, 0], [1, 3]]);
 
             m.saveInit();
-            m.set<Number, any>(h, 2);
+            m.set(h, 2);
             expect(h).toEqual([[0, 0], [1, 3], [2, 2]]);
         });
     });

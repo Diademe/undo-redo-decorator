@@ -5,11 +5,11 @@ import { notDefined, getAllPropertyNames } from "./utils";
 
 type T = Class<any>;
 type K = keyof T;
+type TFutureKey = Map<UndoInternal, Set<unknown>>;
+
 export class UndoInternal {
     /** associate a property key to its history */
-    protected history: Map<K, History<T, K>>;
-    /** associate a key to its history (map and set) */
-    protected historyCollection: Map<any, History<T, K>>;
+    protected history: Map<unknown, History>;
     public master: MasterIndex;
     /** the class being monitored */
     public target: T;
@@ -18,8 +18,7 @@ export class UndoInternal {
 
     constructor(target: T) {
         this.target = target;
-        this.history = new Map<K, History<T, K>>();
-        this.historyCollection = new Map<any, History<T, K>>();
+        this.history = new Map();
         this.action = -1;
     }
 
@@ -34,7 +33,7 @@ export class UndoInternal {
         });
     }
 
-    protected getValueFromTarget(propKey: K): any {
+    protected getValueFromTarget(propKey: unknown): unknown {
         if (this.target instanceof Set) {
             return this.target.has(propKey) ? true : notDefined;
         }
@@ -42,51 +41,39 @@ export class UndoInternal {
             return this.target.has(propKey) ? this.target.get(propKey) : notDefined;
         }
         else {
-            return propKey in this.target ? this.target[propKey] : notDefined;
+            return (propKey as string | number) in this.target ? this.target[propKey as string | number] : notDefined;
         }
     }
 
-    protected collapse(propKey: K): void {
+    protected collapse(propKey: unknown): void {
         const value = this.getValueFromTarget(propKey);
         if (this.history.has(propKey)) {
             this.history.get(propKey).collapse(value);
         }
         else {
-            this.history.set(
-                propKey,
-                new History<T, K>(
-                    this.master,
-                    value
-                )
-            );
+            this.history.set(propKey, new History(this.master, value));
         }
     }
 
     /** save the current value into the history of the propKey */
-    protected save(propKey: K): void {
+    protected save(propKey: unknown): void {
         const value = this.getValueFromTarget(propKey);
         if (this.history.has(propKey)) {
             this.history.get(propKey).set(value);
         }
         else {
-            this.history.set(
-                propKey,
-                new History<T, K>(
-                    this.master,
-                    value as K
-                )
-            );
+            this.history.set(propKey, new History(this.master, value as unknown));
         }
     }
 
     /** overrides the current value with the value stored in the propKey history */
-    protected load(propKey: K) {
+    protected load(propKey: unknown) {
         const deleteProperty = () => {
             if (this.target instanceof Set || this.target instanceof Map) {
                 this.target.delete(propKey);
             }
             else {
-                delete this.target[propKey];
+                delete this.target[propKey as string | number];
             }
         };
         /** get the property from the object */
@@ -98,7 +85,7 @@ export class UndoInternal {
                 return this.target.get(propKey);
             }
             else {
-                return this.target[propKey];
+                return this.target[propKey as string | number];
             }
         };
         /** set the property from the history to the object */
@@ -115,7 +102,7 @@ export class UndoInternal {
                 this.target.set(propKey, val);
             }
             else {
-                this.target[propKey] = val;
+                this.target[propKey as string | number] = val;
             }
         };
         const localHistory = this.history.get(propKey);
@@ -133,7 +120,7 @@ export class UndoInternal {
         }
     }
 
-    protected dispatchAndRecurse(propKey: K, v: Visitor, recurse: boolean, shallowDepth: number): void {
+    protected dispatchAndRecurse(propKey: unknown, v: Visitor, recurse: boolean, shallowDepth: number, collections: TFutureKey): void {
         switch (v) {
             case Visitor.save: {
                 this.save(propKey);
@@ -185,7 +172,7 @@ export class UndoInternal {
         }
         this.master = master;
 
-        const memberDispatched = new Set<K>();
+        const memberDispatched = new Set<unknown>();
 
         const {
             afterLoad,
@@ -241,9 +228,9 @@ export class UndoInternal {
  * it carry information that are revalant a class level (which property to not track for example).
  */
 export class UndoInternalInformation {
-    public nonEnumerables: Key[];
-    public doNotTrack: Set<Key>;
-    public doNotRecurs: Set<Key>;
+    public nonEnumerables: unknown[];
+    public doNotTrack: Set<unknown>;
+    public doNotRecurs: Set<unknown>;
     public afterLoad: Set<Key>;
 
     constructor(baseCtor: Function) {

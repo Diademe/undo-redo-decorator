@@ -103,7 +103,7 @@ export class MasterIndex {
      * must not be empty (initialize it with [0, notDefined])
      * @param obj the object to save in slaveHistory
      */
-    public set<T, K extends keyof T>(slaveHistory: [number, T[K] | Symbol][], obj: T[K] | Symbol): void {
+    public set(slaveHistory: [number, unknown | Symbol][], obj: unknown | Symbol): void {
         const indexSlaveHistory = this.findIndex(slaveHistory);
 
         // we don't write twice an item at the end of the history
@@ -138,9 +138,9 @@ export class MasterIndex {
         }
     }
 
-    public collapse<T, K extends keyof T>(
-        slaveHistory: [number, T[K] | Symbol][],
-        obj: T[K] | Symbol
+    public collapse(
+        slaveHistory: [number, unknown | Symbol][],
+        obj: unknown | Symbol
     ): void {
         // find where we have to collapse in slaveHistory
         const indexSlaveHistory = this.findIndex(slaveHistory);
