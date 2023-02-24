@@ -201,7 +201,7 @@ export class UndoInternal {
             }
         }
 
-        // non enumerables
+        // non enumerable
         for (const nonEnumerable of nonEnumerables) {
             this.dispatchAndRecurse(nonEnumerable, v, !doNotRecurs.has(nonEnumerable), shallowDepth);
             memberDispatched.add(nonEnumerable);
@@ -243,7 +243,6 @@ export class UndoInternalInformation {
             this.doNotRecurs = new Set();
             this.afterLoad = new Set();
         }
-
     }
 
     /**

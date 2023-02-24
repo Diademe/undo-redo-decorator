@@ -52,7 +52,7 @@ export const Undoable = (
     return <T>(baseCtor: Class<T>) => {
         // in case no decorator were applied, we must create `__undoInternalInformation__`
         initUndoInternalInformation(baseCtor);
-        // set non enumerables members that UndoRedo should watch.
+        // set non enumerable members that UndoRedo should watch.
         (baseCtor.prototype.__undoInternalInformation__ as UndoInternalInformation).
             addNonEnumerables(forceWatch);
     };
