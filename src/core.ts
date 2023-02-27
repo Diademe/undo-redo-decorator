@@ -107,14 +107,11 @@ export class MasterIndex {
         return index === -1 ? -1 : slaveHistory[index][0];
     }
 
-    /** delete history if it is created in the future */
-    public trimFutureHistory(slaveHistory: [number, unknown | Symbol][], ): void {
+    /** if true, slaveHistory must be discarded */
+    public isHistoryToDiscard(slaveHistory: [number, unknown | Symbol][], ): boolean {
         const indexCreation = this.findCreationIndex(slaveHistory);
-        if (this.isDirty && indexCreation >= this.currentIndex) {
-            slaveHistory.length = 0;
-            slaveHistory.push([indexCreation, notDefined]);
-            return;
-        }
+        return (this.isDirty && indexCreation >= this.currentIndex
+            || indexCreation === -1);
     }
 
     /**

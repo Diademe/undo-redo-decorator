@@ -60,7 +60,10 @@ export class UndoInternal {
         if (this.history.has(propKey)) {
             const propHistory = this.history.get(propKey);
             propHistory.set(value);
-            propHistory.trimFutureHistory();
+            const toDiscardHistory = propHistory.isHistoryToDiscard();
+            if (toDiscardHistory) {
+                this.history.delete(propKey);
+            }
         }
         else {
             this.history.set(propKey, new History(this.master, value as unknown));

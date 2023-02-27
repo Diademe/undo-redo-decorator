@@ -136,10 +136,12 @@ describe("immutable", () => {
                 expect(Array.from(x.entries())).toEqual([]);
                 x.set(3, "3");
                 ud.save();
-                // eslint-disable-next-line dot-notation, @typescript-eslint/dot-notation, @typescript-eslint/no-non-null-assertion
-                const history2 = (x as unknown as HasUndoInternal).__undoInternal__["history"].get(2)!["history"];
-                expect(history2.length).toBe(1);
-                expect(history2[0][1]).toBe(notDefined);
+                // eslint-disable-next-line dot-notation, @typescript-eslint/dot-notation
+                const isHistory1ToDiscarded = (x as unknown as HasUndoInternal).__undoInternal__["history"].has(1);
+                expect(isHistory1ToDiscarded).toBe(false);
+                // eslint-disable-next-line dot-notation, @typescript-eslint/dot-notation
+                const isHistory2ToDiscarded = (x as unknown as HasUndoInternal).__undoInternal__["history"].has(2);
+                expect(isHistory2ToDiscarded).toBe(false);
             });
         });
 

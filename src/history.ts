@@ -24,9 +24,12 @@ export class History {
         this.masterIndex.set(this.history, obj);
     }
 
-    /** delete history if it is created in the future */
-    public trimFutureHistory(): void {
-        this.masterIndex.trimFutureHistory(this.history);
+    /**
+     * delete history if it is created in the future
+     * if true is return, slaveHistory must be discarded
+    */
+    public isHistoryToDiscard(): boolean {
+        return this.masterIndex.isHistoryToDiscard(this.history);
     }
 
     public collapse(valueToKeep: unknown | Symbol): void {
