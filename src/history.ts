@@ -24,10 +24,7 @@ export class History {
         this.masterIndex.set(this.history, obj);
     }
 
-    /**
-     * delete history if it is created in the future
-     * if true is return, slaveHistory must be discarded
-    */
+    /** if true, slaveHistory must be discarded */
     public isHistoryToDiscard(): boolean {
         return this.masterIndex.isHistoryToDiscard(this.history);
     }
