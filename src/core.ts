@@ -110,7 +110,7 @@ export class MasterIndex {
     /** if true, slaveHistory must be discarded */
     public isHistoryToDiscard(slaveHistory: [number, unknown | Symbol][], ): boolean {
         const indexCreation = this.findCreationIndex(slaveHistory);
-        return (this.isDirty && indexCreation >= this.currentIndex
+        return (this.isDirty && indexCreation > this.currentIndex
             || indexCreation === -1);
     }
 
