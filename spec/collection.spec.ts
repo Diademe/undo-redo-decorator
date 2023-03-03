@@ -1,6 +1,5 @@
 import { Undoable, UndoRedo } from "../src";
 import { HasUndoInternal } from "../src/undo-internal";
-import { notDefined } from "../src/utils";
 
 @Undoable()
 class CustomMap<K, V> extends Map<K, V> {
