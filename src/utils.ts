@@ -5,7 +5,7 @@ export const positiveMod = (value: number, mod: number): number => {
 };
 
 /** overload equality so NaN === NaN */
-export const equality = (a: any, b: any): boolean => {
+export const equality = (a: unknown, b: unknown): boolean => {
     return a === b || (Number.isNaN(a) === true && Number.isNaN(b) === true);
 };
 

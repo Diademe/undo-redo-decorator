@@ -1,5 +1,5 @@
 import { UndoRedoError } from "./type";
-import { equality, notDefined, reverseFindIndex } from "./utils";
+import { notDefined, reverseFindIndex } from "./utils";
 
 /**
  * keep track of the history.
@@ -10,7 +10,7 @@ export class MasterIndex {
     private maxIndex: number; // highest index reach by currentIndex (if there was undo)
     private isDirty: boolean;
 
-    constructor() {
+    constructor(private equality: (a: unknown, b: unknown) => boolean) {
         this.currentIndex = 0;
         this.minIndex = 0;
         this.maxIndex = this.currentIndex;
@@ -123,7 +123,7 @@ export class MasterIndex {
         const indexSlaveHistory = this.findIndex(slaveHistory);
 
         // we don't write twice an item at the end of the history
-        if (equality(slaveHistory[indexSlaveHistory][1], obj)) {
+        if (this.equality(slaveHistory[indexSlaveHistory][1], obj)) {
             return;
         }
 
@@ -165,7 +165,7 @@ export class MasterIndex {
         slaveHistory.length = indexSlaveHistory + 1;
 
         // we don't write twice an item at the end of the history
-        if (equality(slaveHistory[indexSlaveHistory][1], obj)) {
+        if (this.equality(slaveHistory[indexSlaveHistory][1], obj)) {
             return;
         }
 

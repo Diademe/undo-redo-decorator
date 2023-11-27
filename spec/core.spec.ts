@@ -1,7 +1,7 @@
 /* eslint-disable no-empty-function */
 import { MasterIndex } from "../src/core";
 import { UndoRedo, Undoable } from "../src";
-import { notDefined, reverseFindIndex } from "../src/utils";
+import { notDefined, reverseFindIndex, equality as defaultEquality } from "../src/utils";
 
 describe("core", () => {
     test("reverseFindIndex", () => {
@@ -19,7 +19,7 @@ describe("core", () => {
             // initial state: nothing in history,
 
             beforeEach(() => {
-                m = new MasterIndex();
+                m = new MasterIndex(defaultEquality);
                 h = [[0, notDefined]];
             });
 
@@ -104,7 +104,7 @@ describe("core", () => {
 
 
         test("undo | redo", () => {
-            const m = new MasterIndex();
+            const m = new MasterIndex(defaultEquality);
             const h: [number, number | symbol][] = [[0, notDefined]];
             expect(m.getCurrentIndex()).toBe(0);
             m.set(h, 0);

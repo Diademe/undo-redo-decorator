@@ -1,6 +1,7 @@
 import { MasterIndex } from "./core";
 import { Visitor, ShallowSave, UndoRedoError } from "./type";
 import { hasUndoInternal, UndoInternal, hasUndoInternalInformation, HasUndoInternal } from "./undo-internal";
+import { equality as defaultEquality } from "./utils";
 export { ShallowSave, UndoRedoError } from "./type";
 export { Undoable, UndoDoNotTrack, UndoDoNotRecurs, UndoAfterLoad } from "./decorator";
 
@@ -29,7 +30,7 @@ export class UndoRedo {
     }
 
     constructor(watchable?: any) {
-        this.index = new MasterIndex();
+        this.index = new MasterIndex(defaultEquality);
         if (watchable) {
             this.internalAdd(watchable);
             this.init();
