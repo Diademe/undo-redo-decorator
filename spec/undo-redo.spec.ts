@@ -74,4 +74,36 @@ describe("[undo | redo] Possible", () => {
         expect(ud.getCurrentIndex()).toBe(0);
         expect(obj).toEqual(new Obj(1));
     });
+
+    test("clearHistory", () => {
+        expect(ud.getCurrentIndex()).toBe(0);
+        obj.a = 0;
+        ud.save();
+        obj.a = 1;
+        ud.save();
+        obj.a = 2;
+        ud.save();
+        obj.a = 3;
+        ud.save();
+        const index = ud.getCurrentIndex();
+        obj.a = 4;
+        ud.save();
+        expect(ud.getCurrentIndex()).toBe(index + 1);
+        ud.clearHistory(index);
+        obj.a = 5;
+        ud.save();
+        expect(ud.getCurrentIndex()).toBe(index + 2);
+        ud.undo(index);
+        expect(ud.getCurrentIndex()).toBe(index);
+        expect(obj).toEqual(new Obj(3));
+        ud.undo();
+        expect(ud.getCurrentIndex()).toBe(index - 1);
+        expect(obj.a).toBeUndefined();
+        ud.redo();
+        expect(ud.getCurrentIndex()).toBe(index);
+        expect(obj).toEqual(new Obj(3));
+        ud.redo();
+        expect(ud.getCurrentIndex()).toBe(index + 1);
+        expect(obj).toEqual(new Obj(4));
+    });
 });

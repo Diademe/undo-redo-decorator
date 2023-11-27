@@ -185,4 +185,15 @@ export class UndoRedo {
         }
         this.computeMinIndex(size === 0 ? Number.MAX_SAFE_INTEGER : size);
     }
+
+    /**
+     * lazy clear of hold history
+     * holderThanIndex >= 0
+     */
+    public clearHistory(holderThanIndex: number): void {
+        if (holderThanIndex < 0) {
+            throw new InvalidParameterError(`the argument (${holderThanIndex}) of clearHistory must be greater or equal to 0`);
+        }
+        this.index.minIndex = holderThanIndex;
+    }
 }

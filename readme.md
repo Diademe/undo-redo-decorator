@@ -82,6 +82,12 @@ If `x === 0`, then the history limit is set to infinity.
 Else if `x >= 12`, each time the history size reach `x`, it is shrieked by 1/4 of `x`, by discarding olds values.
 Otherwise, an exception is thrown. The limit of 12 is here to performance reason.
 
+#### clearHistory
+
+Clear history of the undo redo older than the index given as argument. This function is lazy:
+change will be apply on the next undo / redo / save.  
+Warning: if you clear the history, and go beyond that index using undo, variable of object will become undefined
+
 #### shallow save / undo / redo
 
 ```typescript
