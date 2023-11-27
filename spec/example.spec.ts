@@ -4,7 +4,7 @@ import { UndoRedo, Undoable } from "../src";
 @Undoable()
 class Fifo<T> extends Array<T> {
     top(): T {
-        return this[this.length - 1];
+        return this.at(-1);
     }
     add(arg: T) {
         this.push(arg);
