@@ -191,8 +191,8 @@ export class UndoRedo {
      * holderThanIndex >= 0
      */
     public clearHistory(olderThanIndex: number): void {
-        if (olderThanIndex < 0) {
-            throw new InvalidParameterError(`the argument (${olderThanIndex}) of clearHistory must be greater or equal to 0`);
+        if (olderThanIndex < this.index.minIndex) {
+            throw new InvalidParameterError(`the argument (${olderThanIndex}) of clearHistory must be greater or equal to ${this.index.minIndex}`);
         }
         this.index.minIndex = olderThanIndex;
     }
