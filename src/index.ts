@@ -190,10 +190,10 @@ export class UndoRedo {
      * lazy clear of hold history
      * holderThanIndex >= 0
      */
-    public clearHistory(holderThanIndex: number): void {
-        if (holderThanIndex < 0) {
-            throw new InvalidParameterError(`the argument (${holderThanIndex}) of clearHistory must be greater or equal to 0`);
+    public clearHistory(olderThanIndex: number): void {
+        if (olderThanIndex < 0) {
+            throw new InvalidParameterError(`the argument (${olderThanIndex}) of clearHistory must be greater or equal to 0`);
         }
-        this.index.minIndex = holderThanIndex;
+        this.index.minIndex = olderThanIndex;
     }
 }
