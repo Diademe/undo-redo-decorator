@@ -68,7 +68,6 @@ export class MasterIndex {
     }
 
     public maxRedoPossible() {
-        // -1 because branchHistory is initialized to [0]
         return this.maxIndex - this.currentIndex;
     }
 
