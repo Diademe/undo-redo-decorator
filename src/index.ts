@@ -164,7 +164,7 @@ export class UndoRedo {
     }
 
     public undoPossible(): boolean {
-        return this.index.getCurrentIndex() > 0;
+        return this.index.getCurrentIndex() > this.index.minIndex;
     }
 
     public redoPossible(): boolean {
